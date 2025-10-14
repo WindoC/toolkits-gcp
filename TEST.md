@@ -2,8 +2,16 @@
 
 ## Local Setup
 - Backend
-  - Create and activate a virtualenv
-  - Install requirements: `pip install -r backend/requirements.txt`
+  - Create and activate a virtualenv in `.venv`:
+    - Windows (PowerShell):
+      - `python -m venv .venv`
+      - `.\.venv\Scripts\Activate.ps1`
+    - macOS/Linux:
+      - `python3 -m venv .venv`
+      - `source .venv/bin/activate`
+    - Upgrade pip and install deps:
+      - `python -m pip install --upgrade pip`
+      - `pip install -r backend/requirements.txt`
   - Set required env vars (for local dev, minimal values):
     - `JWT_SECRET_KEY=devsecret`
     - `USERNAME=admin`
@@ -34,4 +42,3 @@ Notes
 - 401 Unauthorized: Include `Authorization: Bearer <access_token>` in non-test calls or rely on test overrides.
 - Encryption errors: Ensure `AES_KEY_HASH` is set and client uses the same key for AES-GCM.
 - Firestore/GCS errors: In tests, these are mocked; in real runs provide valid GCP credentials and project.
-
