@@ -42,3 +42,29 @@ Notes
 - 401 Unauthorized: Include `Authorization: Bearer <access_token>` in non-test calls or rely on test overrides.
 - Encryption errors: Ensure `AES_KEY_HASH` is set and client uses the same key for AES-GCM.
 - Firestore/GCS errors: In tests, these are mocked; in real runs provide valid GCP credentials and project.
+
+## Local Testing With GCP
+- Authenticate and set project
+  - `gcloud auth login`
+  - `gcloud config set project <PROJECT_ID>`
+- Service account credentials (recommended for local)
+  - Create a service account with roles:
+    - Firestore User (or Datastore User)
+    - Storage Object Admin (or Creator + Viewer) on your bucket
+  - Set `GOOGLE_APPLICATION_CREDENTIALS` to the JSON key path:
+    - Windows (PowerShell): `setx GOOGLE_APPLICATION_CREDENTIALS C:\\path\\to\\key.json`
+    - macOS/Linux: `export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json`
+- Required env vars (can be in `.env`):
+  - `GOOGLE_CLOUD_PROJECT=<PROJECT_ID>`
+  - `GCS_BUCKET=<BUCKET_NAME>`
+  - `JWT_SECRET_KEY=<secret>`, `USERNAME=<admin>`, `PASSWORD_HASH=<sha256-of-password>`
+  - `AES_KEY_HASH=<at-least-32-chars>`
+- Run backend locally (after activating `.venv`):
+  - `pip install -r backend/requirements.txt`
+  - `PYTHONPATH=backend python -m uvicorn backend.main:app --reload`
+- Quick smoke tests
+  - Health: `curl http://localhost:8000/health`
+  - Auth: `POST /auth/login` with JSON body; use returned bearer token
+  - Encryption: set `localStorage.aes_key_hash` in browser to match `AES_KEY_HASH`
+  - Notes: create/list/get via `/api/notes` (encrypted payload/response)
+  - Files: upload/list/download via `/api/files`
