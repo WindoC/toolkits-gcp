@@ -13,6 +13,189 @@ export class APIService {
     return APIService.instance;
   }
 
+  // Notes APIs (encrypted responses and requests)
+  async getNotes(): Promise<Array<{note_id: string, title: string, content?: string, created_at?: string, updated_at?: string}>> {
+    const response = await fetch(`${API_BASE_URL}/api/notes/`, { headers: this.getAuthHeaders() });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to fetch notes');
+    }
+    const encryptedData: EncryptedPayload = await response.json();
+    if (EncryptionService.isAvailable()) {
+      const data = await EncryptionService.decryptResponse(encryptedData);
+      return data as any;
+    } else {
+      return encryptedData as any;
+    }
+  }
+
+  async getNote(noteId: string): Promise<{note_id: string, title: string, content?: string, created_at?: string, updated_at?: string}> {
+    const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, { headers: this.getAuthHeaders() });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to fetch note');
+    }
+    const encryptedData: EncryptedPayload = await response.json();
+    if (EncryptionService.isAvailable()) {
+      return await EncryptionService.decryptResponse(encryptedData);
+    } else {
+      return encryptedData as any;
+    }
+  }
+
+  async createNote(title: string, content: string): Promise<{note_id: string}> {
+    let body: BodyInit;
+    let headers: HeadersInit = this.getAuthHeaders();
+    if (EncryptionService.isAvailable()) {
+      const encrypted = await EncryptionService.encryptRequest({ title, content });
+      body = JSON.stringify(encrypted);
+    } else {
+      body = JSON.stringify({ title, content });
+    }
+    const response = await fetch(`${API_BASE_URL}/api/notes/`, { method: 'POST', headers, body });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to create note');
+    }
+    const encryptedData: EncryptedPayload = await response.json();
+    if (EncryptionService.isAvailable()) {
+      return await EncryptionService.decryptResponse(encryptedData);
+    } else {
+      return encryptedData as any;
+    }
+  }
+
+  async updateNote(noteId: string, updates: { title?: string, content?: string }): Promise<any> {
+    let body: BodyInit;
+    let headers: HeadersInit = this.getAuthHeaders();
+    if (EncryptionService.isAvailable()) {
+      const encrypted = await EncryptionService.encryptRequest(updates);
+      body = JSON.stringify(encrypted);
+    } else {
+      body = JSON.stringify(updates);
+    }
+    const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, { method: 'PUT', headers, body });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to update note');
+    }
+    const encryptedData: EncryptedPayload = await response.json();
+    if (EncryptionService.isAvailable()) {
+      return await EncryptionService.decryptResponse(encryptedData);
+    } else {
+      return encryptedData as any;
+    }
+  }
+
+  async deleteNote(noteId: string): Promise<{success: boolean}> {
+    const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, { method: 'DELETE', headers: this.getAuthHeaders() });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to delete note');
+    }
+    const encryptedData: EncryptedPayload = await response.json();
+    if (EncryptionService.isAvailable()) {
+      return await EncryptionService.decryptResponse(encryptedData);
+    } else {
+      return encryptedData as any;
+    }
+  }
+
+  // Files APIs (responses unencrypted)
+  async listFiles(isPublic?: boolean): Promise<Array<{file_id: string, object_path: string, size: number, is_public: boolean}>> {
+    const url = new URL(`${API_BASE_URL}/api/files/`, window.location.origin);
+    if (typeof isPublic === 'boolean') url.searchParams.set('is_public', String(isPublic));
+    const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to list files');
+    }
+    const data = await response.json();
+    return data.files || [];
+  }
+
+  async uploadFile(file: File, fileId?: string, isPublic?: boolean): Promise<any> {
+    const form = new FormData();
+    form.append('file', file);
+    if (fileId) form.append('file_id', fileId);
+    if (typeof isPublic === 'boolean') form.append('public', String(isPublic));
+    const response = await fetch(`${API_BASE_URL}/api/files/upload`, { method: 'POST', headers: { 'Authorization': this.getAuthHeaders()['Authorization'] as string }, body: form });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to upload file');
+    }
+    return response.json();
+  }
+
+  async uploadFromUrl(urlStr: string, fileId?: string, isPublic?: boolean): Promise<any> {
+    const form = new FormData();
+    form.append('url', urlStr);
+    if (fileId) form.append('file_id', fileId);
+    if (typeof isPublic === 'boolean') form.append('public', String(isPublic));
+    const response = await fetch(`${API_BASE_URL}/api/files/upload-url`, { method: 'POST', headers: { 'Authorization': this.getAuthHeaders()['Authorization'] as string }, body: form });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to upload from URL');
+    }
+    return response.json();
+  }
+
+  async getFileInfo(fileId: string, isPublic?: boolean): Promise<any> {
+    const url = new URL(`${API_BASE_URL}/api/files/${fileId}`, window.location.origin);
+    if (typeof isPublic === 'boolean') url.searchParams.set('public', String(isPublic));
+    const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to get file info');
+    }
+    return response.json();
+  }
+
+  async downloadFile(fileId: string, isPublic?: boolean): Promise<Blob> {
+    const url = new URL(`${API_BASE_URL}/api/files/${fileId}/download`, window.location.origin);
+    if (typeof isPublic === 'boolean') url.searchParams.set('public', String(isPublic));
+    const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to download file');
+    }
+    return response.blob();
+  }
+
+  async renameFile(fileId: string, newFileId: string, isPublic?: boolean): Promise<any> {
+    const form = new FormData();
+    form.append('new_file_id', newFileId);
+    if (typeof isPublic === 'boolean') form.append('public', String(isPublic));
+    const response = await fetch(`${API_BASE_URL}/api/files/${fileId}`, { method: 'PATCH', headers: { 'Authorization': this.getAuthHeaders()['Authorization'] as string }, body: form });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to rename file');
+    }
+    return response.json();
+  }
+
+  async toggleShare(fileId: string, currentPublic: boolean): Promise<any> {
+    const form = new FormData();
+    form.append('current_public', String(currentPublic));
+    const response = await fetch(`${API_BASE_URL}/api/files/${fileId}/toggle-share`, { method: 'POST', headers: { 'Authorization': this.getAuthHeaders()['Authorization'] as string }, body: form });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to toggle share');
+    }
+    return response.json();
+  }
+
+  async deleteFile(fileId: string, isPublic?: boolean): Promise<any> {
+    const url = new URL(`${API_BASE_URL}/api/files/${fileId}`, window.location.origin);
+    if (typeof isPublic === 'boolean') url.searchParams.set('public', String(isPublic));
+    const response = await fetch(url.toString().replace(window.location.origin, ''), { method: 'DELETE', headers: this.getAuthHeaders() });
+    if (!response.ok) {
+      await this.handleAuthError(response);
+      throw new Error('Failed to delete file');
+    }
+    return response.json();
+  }
+
   private getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem('access_token');
     const headers: HeadersInit = {

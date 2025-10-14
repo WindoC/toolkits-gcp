@@ -42,8 +42,8 @@ class EncryptionMiddleware(BaseHTTPMiddleware):
         # Store encryption key in request state for use by endpoints
         request.state.encryption_key = encryption_key
         
-        # Handle POST/PATCH requests with encrypted payloads
-        if request.method in ["POST", "PATCH"]:
+        # Handle POST/PATCH/PUT requests with encrypted payloads
+        if request.method in ["POST", "PATCH", "PUT"]:
             try:
                 # Read and decrypt request body
                 body = await request.body()

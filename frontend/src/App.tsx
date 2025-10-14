@@ -6,6 +6,8 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { EditableTitle } from './components/EditableTitle';
 import { ModelSelector } from './components/ModelSelector';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { NotesPage } from './components/NotesPage';
+import { FilesPage } from './components/FilesPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { apiService } from './services/api';
 import EncryptionService from './services/encryptionService';
@@ -594,10 +596,25 @@ function ChatInterface() {
 }
 
 function App() {
+  const [view, setView] = React.useState<'chat'|'notes'|'files'>(() => (localStorage.getItem('ui_view') as any) || 'chat');
+  const setAndPersist = (v: 'chat'|'notes'|'files') => { setView(v); localStorage.setItem('ui_view', v); };
   return (
     <AuthProvider>
       <ProtectedRoute>
-        <ChatInterface />
+        <div className="h-screen flex flex-col">
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-2">
+            <div className="flex items-center gap-2">
+              <button className={`px-3 py-1 rounded ${view==='chat'?'bg-blue-600 text-white':'bg-gray-100 dark:bg-gray-800'}`} onClick={()=>setAndPersist('chat')}>Chat</button>
+              <button className={`px-3 py-1 rounded ${view==='notes'?'bg-blue-600 text-white':'bg-gray-100 dark:bg-gray-800'}`} onClick={()=>setAndPersist('notes')}>Notes</button>
+              <button className={`px-3 py-1 rounded ${view==='files'?'bg-blue-600 text-white':'bg-gray-100 dark:bg-gray-800'}`} onClick={()=>setAndPersist('files')}>Files</button>
+            </div>
+          </div>
+          <div className="flex-1 min-h-0">
+            {view==='chat' && <ChatInterface />}
+            {view==='notes' && <NotesPage />}
+            {view==='files' && <FilesPage />}
+          </div>
+        </div>
       </ProtectedRoute>
     </AuthProvider>
   );
