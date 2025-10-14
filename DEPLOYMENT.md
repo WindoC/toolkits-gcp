@@ -45,3 +45,32 @@ Set these in App Engine (recommended via `app.yaml` env_variables with placehold
 - GCS errors: verify `GCS_BUCKET` and service account permissions (Storage Object Admin minimum for the bucket).
 - Firestore errors: check Firestore is enabled and service account has access; database id `(default)`.
 
+## Local Testing With GCP
+- Service account and authentication
+  - Create a service account with minimal roles:
+    - Firestore User (or Datastore User) for database access
+    - Storage Object Admin (or narrower: Storage Object Creator + Viewer) for the bucket
+  - Download a JSON key and set `GOOGLE_APPLICATION_CREDENTIALS` to its path:
+    - Windows (PowerShell): `setx GOOGLE_APPLICATION_CREDENTIALS C:\path\to\key.json`
+    - macOS/Linux: `export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json`
+- Environment setup
+  - `export GOOGLE_CLOUD_PROJECT=<PROJECT_ID>` (or set in `.env`)
+  - `export GCS_BUCKET=<BUCKET_NAME>`
+  - `export JWT_SECRET_KEY=<secret>`
+  - `export USERNAME=<admin>` and `export PASSWORD_HASH=<sha256-of-password>`
+  - `export AES_KEY_HASH=<at-least-32-chars>`
+- Backend run
+  - Create and activate `.venv` (see TEST.md), then:
+  - `pip install -r backend/requirements.txt`
+  - `PYTHONPATH=backend python -m uvicorn backend.main:app --reload`
+- Smoke tests (examples)
+  - Health: `curl http://localhost:8000/health`
+  - Login: `POST /auth/login` with `{ "username": "<admin>", "password": "<pwd>" }`
+  - Set `localStorage.aes_key_hash` in your browser DevTools to match `AES_KEY_HASH`
+  - Notes:
+    - Create (encrypted): `POST /api/notes/` body `{ encrypted_data: <ENC> }`
+    - Get/List: `GET /api/notes/{id}` / `GET /api/notes/` (responses are encrypted)
+  - Files:
+    - Upload: `POST /api/files/upload` with multipart `file`
+    - List: `GET /api/files/`
+    - Download: `GET /api/files/{id}/download`
