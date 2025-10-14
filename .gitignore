@@ -1,0 +1,9 @@
+frontend/build
+__pycache__/
+.env
+
+# Exclude original source project folders now merged into root
+cache-gcp/
+chatai-gcp/
+note-gcp/
+

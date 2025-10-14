@@ -1,0 +1,89 @@
+runtime: python313
+service: default
+
+instance_class: F1
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 1
+  target_cpu_utilization: 0.6
+
+entrypoint: cd backend && PYTHONPATH=/workspace:/workspace/backend python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+
+env_variables:\n  GCS_BUCKET: "your_bucket_name"\n  # These will be set in Google Cloud Console for security
+  GOOGLE_API_KEY: "your_gemini_api_key"
+  GOOGLE_CLOUD_PROJECT: "your_project_id"
+  DEBUG: "false"
+  
+  # Phase 3 Authentication - Set these in GCP Console
+  JWT_SECRET_KEY: "your_jwt_secret_key"
+  JWT_ACCESS_EXPIRE_MINUTES: "30"
+  JWT_REFRESH_EXPIRE_DAYS: "7"
+  USERNAME: "admin"
+  PASSWORD_HASH: "your_password_hash"
+  AUTH_RATE_LIMIT: "10"
+  CHAT_RATE_LIMIT: "30"
+
+  # Phase 4 Encryption - Set this in GCP Console
+  AES_KEY_HASH: "your_aes_key_hash"
+
+handlers:
+  # Serve the React build files
+  - url: /static
+    static_dir: frontend/build/static
+    secure: always
+
+  - url: /favicon.ico
+    static_files: frontend/build/favicon.ico
+    upload: frontend/build/favicon.ico
+    secure: always
+
+  - url: /favicon.svg
+    static_files: frontend/build/favicon.svg
+    upload: frontend/build/favicon.svg
+    secure: always
+
+  - url: /chat-ai-icon.svg
+    static_files: frontend/build/chat-ai-icon.svg
+    upload: frontend/build/chat-ai-icon.svg
+    secure: always
+
+  - url: /logo192.svg
+    static_files: frontend/build/logo192.svg
+    upload: frontend/build/logo192.svg
+    secure: always
+
+  - url: /logo512.svg
+    static_files: frontend/build/logo512.svg
+    upload: frontend/build/logo512.svg
+    secure: always
+
+  - url: /manifest.json
+    static_files: frontend/build/manifest.json
+    upload: frontend/build/manifest.json
+    secure: always
+
+  - url: /robots.txt
+    static_files: frontend/build/robots.txt
+    upload: frontend/build/robots.txt
+    secure: always
+
+  # Authentication routes
+  - url: /auth/.*
+    script: auto
+    secure: always
+
+  # API routes
+  - url: /api/.*
+    script: auto
+    secure: always
+
+  - url: /health
+    script: auto
+    secure: always
+
+  # Serve React app for all other routes
+  - url: /.*
+    static_files: frontend/build/index.html
+    upload: frontend/build/index.html
+    secure: always

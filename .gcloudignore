@@ -1,0 +1,427 @@
+# ChatAI-GCP .gcloudignore
+# Optimized for Google App Engine deployment
+# This file specifies files that are uploaded to App Engine.
+# If you remove this file, App Engine will use .gitignore instead.
+
+# ============================================================================
+# CRITICAL: Exclude secrets and sensitive files
+# ============================================================================
+.env
+.env.*
+**/secrets/
+**/*secret*
+**/*key*
+**/*token*
+**/*password*
+.envrc
+*.pem
+*.key
+*.cert
+*.crt
+service-account.json
+credentials.json
+.credentials/
+
+# ============================================================================
+# Development & Source Control (NOT needed in production)
+# ============================================================================
+
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Version control
+.hg/
+.svn/
+.bzr/
+.cvs/
+
+# ============================================================================
+# Development Environment Files
+# ============================================================================
+
+# Python virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+backend/venv/
+backend/env/
+
+# Node.js development
+node_modules/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# ============================================================================
+# IDE & Editor Files (NOT needed in production)
+# ============================================================================
+
+# Visual Studio Code
+.vscode/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.project
+.metadata
+.settings/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+.vimrc.local
+
+# Emacs
+*~
+\#*\#
+*.elc
+
+# ============================================================================
+# Testing & Quality Assurance (NOT needed in production)
+# ============================================================================
+
+# Test files
+**/tests/
+**/test/
+**/*test.py
+**/*test.js
+**/*test.ts
+**/*test.tsx
+**/*.test.*
+**/*.spec.*
+
+# Test results
+htmlcov/
+coverage/
+.coverage
+.coverage.*
+.pytest_cache/
+.nyc_output/
+test-results/
+playwright-report/
+cypress/videos/
+cypress/screenshots/
+
+# Quality tools
+.eslintcache
+.stylelintcache
+.mypy_cache/
+.tox/
+.nox/
+
+# ============================================================================
+# Documentation (NOT needed in production)
+# ============================================================================
+
+# Documentation source files
+README.md
+DESIGN.md
+API.md
+PLAN.md
+CLAUDE.md
+DEPLOYMENT.md
+TEST.md
+CHANGELOG.md
+CONTRIBUTING.md
+docs/
+documentation/
+
+# Generated documentation
+site/
+_site/
+docs/_build/
+
+# ============================================================================
+# Build & Development Tools (NOT needed in production)
+# ============================================================================
+
+# Python development
+setup.py
+setup.cfg
+pyproject.toml
+tox.ini
+pytest.ini
+.flake8
+.isort.cfg
+mypy.ini
+
+# JavaScript/TypeScript development
+package.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.babelrc
+.eslintrc.*
+.prettierrc.*
+jest.config.*
+webpack.config.*
+rollup.config.*
+vite.config.*
+tsconfig.json
+jsconfig.json
+
+# Build tools
+Makefile
+gulpfile.js
+Gruntfile.js
+.travis.yml
+.circleci/
+.github/
+azure-pipelines.yml
+
+# ============================================================================
+# Frontend Development Files (NOT needed in production)
+# ============================================================================
+
+# React development
+frontend/src/
+frontend/public/
+!frontend/build/
+
+# Source maps (optional - include if you want them in production)
+# *.map
+
+# Development server
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# ============================================================================
+# Cache & Temporary Files
+# ============================================================================
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================================================
+# Database & Local Data (NOT needed in production)
+# ============================================================================
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# Local data
+data/
+dumps/
+backups/
+*.dump
+
+# ============================================================================
+# Docker & Containers (NOT needed in production)
+# ============================================================================
+
+# Docker
+Dockerfile
+Dockerfile.*
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# Kubernetes
+*.yaml
+*.yml
+k8s/
+kubernetes/
+
+# ============================================================================
+# Cloud & Deployment Configuration
+# ============================================================================
+
+# Firebase (keep firebase.json if needed for hosting)
+.firebase/
+.firebaserc
+firebase-debug.log*
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+
+# Other cloud configs
+.aws/
+.azure/
+
+# ============================================================================
+# Security & Compliance Files (NOT needed in production)
+# ============================================================================
+
+# Security scanning
+.security/
+security-report.*
+.snyk
+.whitesource
+
+# License files (optional - include if you want them)
+LICENSE
+LICENSE.*
+
+# ============================================================================
+# Legacy Source Projects (exclude from deployment)
+# ============================================================================
+
+cache-gcp/
+chatai-gcp/
+note-gcp/
+
+# ============================================================================
+# Performance & Monitoring Files (NOT needed in production)
+# ============================================================================
+
+# Profiling
+*.prof
+*.profile
+
+# Performance data
+.performance/
+performance-*.json
+
+# Monitoring configs (unless needed at runtime)
+newrelic.ini
+datadog.yaml
+
+# ============================================================================
+# INCLUDE PATTERNS (Files that SHOULD be deployed)
+# ============================================================================
+
+# These comments document what SHOULD be included:
+# 
+# Python files needed for the app:
+# - backend/*.py (main application files)
+# - backend/routers/*.py
+# - backend/services/*.py
+# - requirements.txt
+# 
+# Frontend production build:
+# - frontend/build/ (React production build)
+# 
+# Configuration:
+# - app.yaml (App Engine configuration)
+# - Any runtime configuration files your app needs
+# 
+# Static assets:
+# - Any images, fonts, or other assets needed by the app
+
+# ============================================================================
+# PROJECT SPECIFIC EXCLUSIONS
+# ============================================================================
+
+# Project-specific files not needed in production
+scripts/
+tools/
+dev-tools/
+.dev/
+local/
+
+# Example configurations
+*.example
+examples/
+samples/
+
+# Build artifacts that aren't the final build
+dist/
+!frontend/build/
+
+# Logs that might be in the project
+logs/
+*.log
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# ChatAI-GCP specific exclusions
+PRD.md
+DESIGN.md
+PLAN.md
+TEST.md
+CLAUDE.md
+
+# Frontend development files (source code not needed in production)
+frontend/src/
+frontend/public/
+frontend/package*.json
+frontend/tsconfig.json
+frontend/tailwind.config.js
+frontend/postcss.config.js
+
+# Backend development files
+backend/tests/
+backend/pytest.ini
+backend/__init__.py
+
+
+# Firebase configuration (keep firebase.json if needed)
+firestore.rules
+firestore.indexes.json
+
+# Google Cloud debug files
+*.debug.log
+gcloud-debug.log
+
+# ============================================================================
+# OPTIONAL: Uncomment these if you want to exclude them
+# ============================================================================
+
+# Source maps (uncomment to exclude from production)
+# *.map
+
+# Type definition files (uncomment if not needed at runtime)
+# *.d.ts
+
+# Configuration files that might contain sensitive info
+# config/
+# settings/
+
+# ============================================================================
+# Notes:
+# - This file optimizes App Engine deployments by excluding unnecessary files
+# - Smaller deployments = faster uploads and deployments
+# - Security: Critical to exclude all sensitive files and development tools
+# - The frontend/build/ directory contains the production React build
+# - Only backend/*.py files and requirements.txt are needed for Python
+# - app.yaml is required for App Engine configuration
+# ============================================================================

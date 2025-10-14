@@ -1,0 +1,17 @@
+<svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" rx="24" fill="#3b82f6"/>
+  
+  <!-- Chat bubble -->
+  <path d="M36 72 C36 54 54 36 72 36 L132 36 C150 36 168 54 168 72 L168 108 C168 126 150 144 132 144 L84 144 L72 168 L72 144 C54 144 36 126 36 108 Z" fill="#ffffff"/>
+  
+  <!-- AI text -->
+  <text x="96" y="100" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="#3b82f6">AI</text>
+  
+  <!-- Sparkle effects -->
+  <g fill="#fbbf24" opacity="0.8">
+    <polygon points="40,40 43,47 50,50 43,53 40,60 37,53 30,50 37,47" />
+    <polygon points="152,60 155,67 162,70 155,73 152,80 149,73 142,70 149,67" />
+    <polygon points="140,140 143,147 150,150 143,153 140,160 137,153 130,150 137,147" />
+  </g>
+</svg>

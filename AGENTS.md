@@ -36,6 +36,12 @@ Scope: Entire repository.
   - GCP: `GOOGLE_CLOUD_PROJECT`, `GCS_BUCKET`
 - App Engine deploy expects `frontend/build` to exist; build via `npm ci && npm run build` before `gcloud app deploy`.
 
+## References
+- Combined docs index: `README.md:1`
+- PRD: `PRD.md:1`
+- Design: `DESIGN.md:1`
+- Plan: `PLAN.md:1`
+
 ## Do Nots
 - Do not switch to a different auth provider or encryption scheme.
 - Do not expose secrets in code or logs. Use env vars.
@@ -52,3 +58,7 @@ Scope: Entire repository.
 - Keep changes small and reviewable; align with phases in PLAN.md.
 - Validate with targeted tests and manual checks where applicable.
 
+## Open Decisions (await confirmation)
+- Persist file metadata in Firestore (Y/N) vs rely on GCS listing only.
+- Notes data model: minimal (title, encrypted content) vs additional tags/fields.
+- Encryption coverage for file endpoints: which endpoints return encrypted JSON metadata vs raw bytes.

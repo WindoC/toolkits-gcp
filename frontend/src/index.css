@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+  }
+}
+
+@layer components {
+  .chat-message {
+    @apply p-4 rounded-lg mb-4 max-w-none;
+  }
+  
+  .chat-message-user {
+    @apply bg-message-user text-white ml-8;
+  }
+  
+  .chat-message-ai {
+    @apply bg-message-ai border mr-8;
+  }
+  
+  .sidebar-item {
+    @apply px-3 py-2 rounded-lg hover:bg-gray-700 cursor-pointer transition-colors;
+  }
+  
+  .sidebar-item-active {
+    @apply bg-gray-700;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Focus styles */
+.focus-visible {
+  outline: 2px solid theme(colors.primary.500);
+  outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+  background-color: theme(colors.primary.500);
+  color: white;
+}
+
+.dark ::selection {
+  background-color: theme(colors.primary.400);
+  color: theme(colors.gray.900);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .sidebar-open .mobile-menu-button {
+    display: none;
+  }
+  
+  /* Prevent horizontal scrolling on mobile */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Improve touch targets on mobile */
+  button {
+    min-height: 44px;
+  }
+  
+  /* Better text sizing on mobile */
+  html {
+    font-size: 16px;
+  }
+  
+  /* Ensure proper viewport handling */
+  * {
+    box-sizing: border-box;
+  }
+  
+  /* Better mobile card spacing */
+  .grid {
+    width: 100%;
+  }
+  
+  /* Ensure mobile sidebar doesn't exceed viewport */
+  .fixed.inset-y-0 {
+    max-width: 85vw;
+  }
+}
+
+/* Improve scrolling performance */
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
