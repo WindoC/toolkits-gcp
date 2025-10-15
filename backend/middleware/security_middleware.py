@@ -47,17 +47,33 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
     
     # Content Security Policy
-    csp = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data: https:; "
-        "connect-src 'self'; "
-        "font-src 'self'; "
-        "object-src 'none'; "
-        "media-src 'none'; "
-        "frame-src 'none';"
-    )
+    path = request.url.path
+    allow_swagger_cdn = path.startswith("/docs") or path.startswith("/redoc")
+    if allow_swagger_cdn:
+        # Allow Swagger UI CDN (jsdelivr) for FastAPI Docs only
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self'; "
+            "font-src 'self' data:; "
+            "object-src 'none'; "
+            "media-src 'none'; "
+            "frame-src 'none';"
+        )
+    else:
+        csp = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self'; "
+            "font-src 'self'; "
+            "object-src 'none'; "
+            "media-src 'none'; "
+            "frame-src 'none';"
+        )
     response.headers["Content-Security-Policy"] = csp
     
     # HSTS (only for HTTPS)
