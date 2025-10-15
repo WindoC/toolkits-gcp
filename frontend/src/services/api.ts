@@ -15,90 +15,73 @@ export class APIService {
 
   // Notes APIs (encrypted responses and requests)
   async getNotes(): Promise<Array<{note_id: string, title: string, content?: string, created_at?: string, updated_at?: string}>> {
+    if (!EncryptionService.isAvailable()) {
+      throw new Error('Encryption key not set');
+    }
     const response = await fetch(`${API_BASE_URL}/api/notes/`, { headers: this.getAuthHeaders() });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to fetch notes');
     }
     const encryptedData: EncryptedPayload = await response.json();
-    if (EncryptionService.isAvailable()) {
-      const data = await EncryptionService.decryptResponse(encryptedData);
-      return data as any;
-    } else {
-      return encryptedData as any;
-    }
+    const data = await EncryptionService.decryptResponse(encryptedData);
+    return data as any;
   }
 
   async getNote(noteId: string): Promise<{note_id: string, title: string, content?: string, created_at?: string, updated_at?: string}> {
+    if (!EncryptionService.isAvailable()) {
+      throw new Error('Encryption key not set');
+    }
     const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, { headers: this.getAuthHeaders() });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to fetch note');
     }
     const encryptedData: EncryptedPayload = await response.json();
-    if (EncryptionService.isAvailable()) {
-      return await EncryptionService.decryptResponse(encryptedData);
-    } else {
-      return encryptedData as any;
-    }
+    return await EncryptionService.decryptResponse(encryptedData);
   }
 
   async createNote(title: string, content: string): Promise<{note_id: string}> {
     let body: BodyInit;
     let headers: HeadersInit = this.getAuthHeaders();
-    if (EncryptionService.isAvailable()) {
-      const encrypted = await EncryptionService.encryptRequest({ title, content });
-      body = JSON.stringify(encrypted);
-    } else {
-      body = JSON.stringify({ title, content });
-    }
+    if (!EncryptionService.isAvailable()) throw new Error('Encryption key not set');
+    const encrypted = await EncryptionService.encryptRequest({ title, content });
+    body = JSON.stringify(encrypted);
     const response = await fetch(`${API_BASE_URL}/api/notes/`, { method: 'POST', headers, body });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to create note');
     }
     const encryptedData: EncryptedPayload = await response.json();
-    if (EncryptionService.isAvailable()) {
-      return await EncryptionService.decryptResponse(encryptedData);
-    } else {
-      return encryptedData as any;
-    }
+    return await EncryptionService.decryptResponse(encryptedData);
   }
 
   async updateNote(noteId: string, updates: { title?: string, content?: string }): Promise<any> {
     let body: BodyInit;
     let headers: HeadersInit = this.getAuthHeaders();
-    if (EncryptionService.isAvailable()) {
-      const encrypted = await EncryptionService.encryptRequest(updates);
-      body = JSON.stringify(encrypted);
-    } else {
-      body = JSON.stringify(updates);
-    }
+    if (!EncryptionService.isAvailable()) throw new Error('Encryption key not set');
+    const encrypted = await EncryptionService.encryptRequest(updates);
+    body = JSON.stringify(encrypted);
     const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, { method: 'PUT', headers, body });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to update note');
     }
     const encryptedData: EncryptedPayload = await response.json();
-    if (EncryptionService.isAvailable()) {
-      return await EncryptionService.decryptResponse(encryptedData);
-    } else {
-      return encryptedData as any;
-    }
+    return await EncryptionService.decryptResponse(encryptedData);
   }
 
   async deleteNote(noteId: string): Promise<{success: boolean}> {
+    if (!EncryptionService.isAvailable()) {
+      throw new Error('Encryption key not set');
+    }
     const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, { method: 'DELETE', headers: this.getAuthHeaders() });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to delete note');
     }
     const encryptedData: EncryptedPayload = await response.json();
-    if (EncryptionService.isAvailable()) {
-      return await EncryptionService.decryptResponse(encryptedData);
-    } else {
-      return encryptedData as any;
-    }
+    return await EncryptionService.decryptResponse(encryptedData);
   }
 
   // Files APIs (responses unencrypted)

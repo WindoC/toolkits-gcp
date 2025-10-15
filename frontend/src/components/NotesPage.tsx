@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiService } from '../services/api';
+import EncryptionService from '../services/encryptionService';
+import { AESKeyModal } from './AESKeyModal';
 
 type Note = { note_id: string; title: string; content?: string; created_at?: string; updated_at?: string };
 
@@ -9,10 +11,27 @@ export const NotesPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [keyModalMessage, setKeyModalMessage] = useState('');
+
+  const ensureKey = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (EncryptionService.isAvailable()) return resolve(true);
+      setKeyModalMessage('Enter your AES encryption key to access Notes:');
+      setShowKeyModal(true);
+      const check = () => {
+        if (EncryptionService.isAvailable()) { setShowKeyModal(false); resolve(true); }
+        else setTimeout(check, 100);
+      };
+      check();
+    });
+  };
 
   const load = async () => {
     try {
       setLoading(true);
+      const hasKey = await ensureKey();
+      if (!hasKey) return;
       const data = await apiService.getNotes();
       setNotes(data);
     } catch (e) {
@@ -26,6 +45,7 @@ export const NotesPage: React.FC = () => {
 
   const onSelect = async (n: Note) => {
     try {
+      const hasKey = await ensureKey(); if (!hasKey) return;
       const full = await apiService.getNote(n.note_id);
       setSelected(full);
       setTitle(full.title || '');
@@ -42,6 +62,7 @@ export const NotesPage: React.FC = () => {
   const onCreate = async () => {
     if (!title.trim()) return;
     try {
+      const hasKey = await ensureKey(); if (!hasKey) return;
       await apiService.createNote(title, content);
       resetForm();
       await load();
@@ -51,6 +72,7 @@ export const NotesPage: React.FC = () => {
   const onUpdate = async () => {
     if (!selected) return;
     try {
+      const hasKey = await ensureKey(); if (!hasKey) return;
       await apiService.updateNote(selected.note_id, { title, content });
       await load();
     } catch (e) { console.error(e); }
@@ -58,6 +80,7 @@ export const NotesPage: React.FC = () => {
 
   const onDelete = async (noteId: string) => {
     try {
+      const hasKey = await ensureKey(); if (!hasKey) return;
       await apiService.deleteNote(noteId);
       if (selected?.note_id === noteId) resetForm();
       await load();
@@ -86,6 +109,11 @@ export const NotesPage: React.FC = () => {
       </div>
       <div className="flex-1 p-4">
         <div className="max-w-2xl">
+          {!EncryptionService.isAvailable() && (
+            <div className="mb-3 p-3 rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-sm">
+              Encryption key is not set. You will be prompted before accessing Notes.
+            </div>
+          )}
           <div className="mb-3">
             <label className="block text-sm font-medium mb-1">Title</label>
             <input className="w-full rounded border px-3 py-2 dark:bg-gray-800" value={title} onChange={e=>setTitle(e.target.value)} placeholder="Note title" />
@@ -106,7 +134,7 @@ export const NotesPage: React.FC = () => {
           </div>
         </div>
       </div>
+      <AESKeyModal isOpen={showKeyModal} onSubmit={async (k)=>{ await EncryptionService.setupEncryptionKey(k); setShowKeyModal(false); }} onCancel={()=>setShowKeyModal(false)} message={keyModalMessage} />
     </div>
   );
 };
-
