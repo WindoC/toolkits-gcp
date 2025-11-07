@@ -1,18 +1,27 @@
 import React, { useEffect, useState } from 'react';
+import './notes.css';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { apiService } from '../services/api';
 import EncryptionService from '../services/encryptionService';
 import { AESKeyModal } from './AESKeyModal';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import NotesHeader from './NotesHeader';
 
 type Note = { note_id: string; title: string; content?: string; created_at?: string; updated_at?: string };
 
 export const NotesPage: React.FC = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [notes, setNotes] = useState<Note[]>([]);
-  const [selected, setSelected] = useState<Note | null>(null);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [filtered, setFiltered] = useState<Note[]>([]);
+  // Editing handled on dedicated routes; keep only list state here
   const [loading, setLoading] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [keyModalMessage, setKeyModalMessage] = useState('');
+  const [query, setQuery] = useState('');
+  // editor is handled on dedicated pages now
 
   const ensureKey = (): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -33,7 +42,15 @@ export const NotesPage: React.FC = () => {
       const hasKey = await ensureKey();
       if (!hasKey) return;
       const data = await apiService.getNotes();
-      setNotes(data);
+      // Try to hydrate content for previews
+      const withContent = await Promise.all(
+        data.map(async (n) => {
+          if (n.content) return n;
+          try { const full = await apiService.getNote(n.note_id); return { ...n, content: full.content }; } catch { return n; }
+        })
+      );
+      setNotes(withContent);
+      setFiltered(applyFilter(withContent, query));
     } catch (e) {
       console.error(e);
     } finally {
@@ -43,97 +60,103 @@ export const NotesPage: React.FC = () => {
 
   useEffect(() => { load(); }, []);
 
-  const onSelect = async (n: Note) => {
+  const applyFilter = (items: Note[], q: string) => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return items;
+    return items.filter(n =>
+      (n.title || '').toLowerCase().includes(needle) ||
+      (n.content || '').toLowerCase().includes(needle)
+    );
+  };
+
+  useEffect(() => {
+    setFiltered(applyFilter(notes, query));
+  }, [query, notes]);
+
+  const onEdit = async (n?: Note) => {
     try {
       const hasKey = await ensureKey(); if (!hasKey) return;
-      const full = await apiService.getNote(n.note_id);
-      setSelected(full);
-      setTitle(full.title || '');
-      setContent(full.content || '');
+      if (n) {
+        navigate(`/note/${n.note_id}`);
+      } else {
+        navigate('/note/new');
+      }
     } catch (e) { console.error(e); }
   };
 
-  const resetForm = () => {
-    setSelected(null);
-    setTitle('');
-    setContent('');
-  };
-
-  const onCreate = async () => {
-    if (!title.trim()) return;
-    try {
-      const hasKey = await ensureKey(); if (!hasKey) return;
-      await apiService.createNote(title, content);
-      resetForm();
-      await load();
-    } catch (e) { console.error(e); }
-  };
-
-  const onUpdate = async () => {
-    if (!selected) return;
-    try {
-      const hasKey = await ensureKey(); if (!hasKey) return;
-      await apiService.updateNote(selected.note_id, { title, content });
-      await load();
-    } catch (e) { console.error(e); }
-  };
+  // Creation/Update handled in NoteEditorPage
 
   const onDelete = async (noteId: string) => {
     try {
       const hasKey = await ensureKey(); if (!hasKey) return;
       await apiService.deleteNote(noteId);
-      if (selected?.note_id === noteId) resetForm();
       await load();
     } catch (e) { console.error(e); }
   };
 
+  const onDownload = (n: Note) => {
+    const blob = new Blob([n.content || ''], { type: 'text/markdown;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${(n.title || 'note').replace(/[^a-z0-9_-]+/gi,'_')}.md`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
   return (
-    <div className="flex h-full">
-      <div className="w-72 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
-        <div className="p-3 flex items-center justify-between">
-          <h2 className="font-semibold">Notes</h2>
-          <button className="px-2 py-1 text-sm rounded bg-blue-600 text-white" onClick={load} disabled={loading}>Refresh</button>
+    <div className="notes-theme">
+      <NotesHeader rightActions={
+        <>
+          <button className="btn-sm btn-blue" onClick={() => onEdit(undefined)}>Create</button>
+          <label className="btn-sm btn-gray" style={{display:'inline-flex', alignItems:'center', gap:'.25rem', cursor:'pointer'}}>
+            <input type="file" accept=".md,.txt" style={{display:'none'}} onChange={async (e) => {
+              const f = e.target.files?.[0]; if (!f) return;
+              const text = await f.text();
+              navigate('/note/new', { state: { title: f.name.replace(/\.[^/.]+$/, ''), content: text } });
+              (e.target as HTMLInputElement).value = '';
+            }} />
+            Upload
+          </label>
+          <button className="btn-sm btn-red" onClick={logout}>Logout</button>
+        </>
+      } />
+
+      {/* Search */}
+      <div className="notes-root">
+        <div className="notes-search">
+          <input className="notes-search-input" placeholder="Search notes..." value={query} onChange={e=>setQuery(e.target.value)} />
+          <button className="btn-sm btn-blue" onClick={()=>setFiltered(applyFilter(notes, query))}>Search</button>
         </div>
-        <ul>
-          {notes.map(n => (
-            <li key={n.note_id} className={`px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 ${selected?.note_id===n.note_id?'bg-gray-100 dark:bg-gray-800':''}`}
-                onClick={() => onSelect(n)}>
-              <div className="flex items-center justify-between">
-                <span className="truncate">{n.title}</span>
-                <button onClick={(e)=>{e.stopPropagation(); onDelete(n.note_id);}} className="text-xs text-red-600">Delete</button>
+
+        {/* Grid */}
+        <div className="notes-grid">
+          {filtered.map(n => (
+            <div key={n.note_id} className="note-card">
+              <div className="note-title">
+                <a href={`/note/${n.note_id}/preview`} style={{textDecoration:'none', color:'inherit'}}>{n.title || 'Untitled'}</a>
               </div>
-            </li>
-          ))}
-          {notes.length===0 && <li className="px-3 py-2 text-gray-500">No notes yet</li>}
-        </ul>
-      </div>
-      <div className="flex-1 p-4">
-        <div className="max-w-2xl">
-          {!EncryptionService.isAvailable() && (
-            <div className="mb-3 p-3 rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-sm">
-              Encryption key is not set. You will be prompted before accessing Notes.
+              <div className="note-updated">Updated: {n.updated_at ? new Date(n.updated_at).toLocaleString() : ''}</div>
+              {n.content && (
+                <div className="note-preview markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {(n.content || '').slice(0, 1200)}
+                  </ReactMarkdown>
+                </div>
+              )}
+              <div className="note-buttons">
+                <button className="btn-sm btn-blue" onClick={()=>onEdit(n)}>Edit</button>
+                <button className="btn-sm btn-gray" onClick={()=>onDownload(n)}>Download</button>
+                <button className="btn-sm btn-red" onClick={()=>onDelete(n.note_id)}>Delete</button>
+              </div>
             </div>
+          ))}
+          {filtered.length===0 && (
+            <div className="note-card" style={{gridColumn: '1 / -1', textAlign:'center', color:'var(--text-muted)'}}>No notes found</div>
           )}
-          <div className="mb-3">
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input className="w-full rounded border px-3 py-2 dark:bg-gray-800" value={title} onChange={e=>setTitle(e.target.value)} placeholder="Note title" />
-          </div>
-          <div className="mb-3">
-            <label className="block text-sm font-medium mb-1">Content</label>
-            <textarea className="w-full h-64 rounded border px-3 py-2 dark:bg-gray-800" value={content} onChange={e=>setContent(e.target.value)} placeholder="Write your note..." />
-          </div>
-          <div className="flex gap-2">
-            {selected ? (
-              <>
-                <button className="px-3 py-2 rounded bg-blue-600 text-white" onClick={onUpdate}>Save</button>
-                <button className="px-3 py-2 rounded bg-gray-200 dark:bg-gray-700" onClick={resetForm}>New</button>
-              </>
-            ) : (
-              <button className="px-3 py-2 rounded bg-green-600 text-white" onClick={onCreate}>Create</button>
-            )}
-          </div>
         </div>
       </div>
+
+      {/* Editor Modal removed; use /note/new and /note/:id */}
       <AESKeyModal isOpen={showKeyModal} onSubmit={async (k)=>{ await EncryptionService.setupEncryptionKey(k); setShowKeyModal(false); }} onCancel={()=>setShowKeyModal(false)} message={keyModalMessage} />
     </div>
   );

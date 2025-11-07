@@ -1,0 +1,154 @@
+/* Scoped Notes UI (inspired by note-gcp) */
+.notes-theme {
+  /* Light */
+  --bg: #f8f9fa;
+  --text: #333333;
+  --text-strong: #495057;
+  --text-muted: #6c757d;
+  --surface: #ffffff;
+  --border: #e9ecef;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-soft: 0 2px 4px rgba(0,0,0,0.06);
+  --primary: #007bff;
+  --primary-hover: #0056b3;
+  --danger: #dc3545;
+  --danger-hover: #c82333;
+  --focus: #80bdff;
+}
+
+[data-theme="dark"] .notes-theme {
+  --bg: #0f1216;
+  --text: #e5e7eb;
+  --text-strong: #f3f4f6;
+  --text-muted: #9ca3af;
+  --surface: #1f2937;
+  --border: #374151;
+  --shadow: 0 2px 8px rgba(0,0,0,0.5);
+  --shadow-soft: 0 2px 4px rgba(0,0,0,0.4);
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --focus: #60a5fa;
+}
+
+.notes-theme .notes-root {
+  background: var(--bg);
+  color: var(--text);
+  min-height: calc(100vh - 3rem);
+  padding: 0.5rem 0 2rem 0; /* prevent top margin collapse causing white bar */
+}
+
+.notes-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.notes-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+/* Topbar */
+.notes-topbar {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--surface); /* opaque to avoid bleed */
+  border-bottom: 1px solid var(--border);
+}
+.notes-topbar-inner { max-width: 1200px; margin: 0 auto; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; }
+.notes-brand { display: flex; align-items: center; gap: .5rem; color: var(--text-strong); font-weight: 700; }
+.notes-actions { display: flex; gap: .5rem; }
+.btn-sm { padding: 0.45rem .85rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
+.btn-blue { background: var(--primary); color: #fff; }
+.btn-blue:hover { background: var(--primary-hover); }
+.btn-gray { background: color-mix(in srgb, var(--border) 60%, transparent); color: var(--text-strong); }
+.btn-gray:hover { background: color-mix(in srgb, var(--border) 75%, transparent); }
+.btn-red { background: var(--danger); color: #fff; }
+.btn-red:hover { background: var(--danger-hover); }
+
+/* Uniform square icon buttons for header */
+.icon-btn { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); }
+.icon-btn:hover { background: var(--link-hover-bg); }
+
+/* Search */
+.notes-search { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; display: flex; gap: .75rem; }
+.notes-search-input { flex: 1; height: 44px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 8px; padding: 0 .9rem; font-size: .95rem; }
+.notes-search-input::placeholder { color: var(--text-muted); }
+
+/* Grid */
+.notes-grid { max-width: 1200px; margin: 0 auto; padding: 0 1rem; display: grid; gap: 1rem; grid-template-columns: repeat(1, minmax(0,1fr)); }
+@media (min-width: 768px) { .notes-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (min-width: 1024px) { .notes-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+.note-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); padding: 1rem; display: flex; flex-direction: column; gap: .75rem; }
+.note-title { font-weight: 700; color: var(--text-strong); font-size: 1.1rem; }
+.note-updated { font-size: .85rem; color: var(--text-muted); }
+.note-preview { color: var(--text); opacity: .95; max-height: 7.5rem; overflow: hidden; }
+.note-preview.markdown { position: relative; }
+.note-preview.markdown { -webkit-mask-image: linear-gradient(180deg, #000 75%, rgba(0,0,0,0)); mask-image: linear-gradient(180deg, #000 75%, rgba(0,0,0,0)); }
+.markdown h1, .markdown h2, .markdown h3 { color: var(--text-strong); margin: .35rem 0 .25rem; }
+.markdown p { margin: .25rem 0; }
+.markdown ul { padding-left: 1.15rem; margin: .25rem 0; }
+.markdown li { margin: .2rem 0; }
+.markdown code { background: color-mix(in srgb, var(--border) 65%, transparent); padding: .1rem .3rem; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.markdown pre { background: color-mix(in srgb, var(--border) 75%, transparent); border: 1px solid var(--border); padding: .5rem .75rem; border-radius: 8px; overflow: auto; }
+.markdown blockquote { border-left: 3px solid var(--border); padding-left: .75rem; color: var(--text-muted); margin: .4rem 0; }
+.note-buttons { display: flex; gap: .5rem; margin-top: .25rem; }
+
+/* Modal */
+.notes-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 40; }
+.notes-modal { width: 100%; max-width: 720px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); padding: 1rem; }
+.notes-modal-header { display:flex; align-items:center; justify-content: space-between; margin-bottom: .5rem; }
+.notes-modal-body { display: grid; gap: .75rem; }
+.notes-modal-footer { display:flex; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+
+.notes-sidebar {
+  overflow: hidden;
+}
+
+.notes-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.notes-title {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.notes-list {
+  list-style: none;
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+}
+.notes-item { padding: 0.5rem 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+.notes-item:hover { background: color-mix(in srgb, var(--border) 70%, transparent); }
+.notes-item.active { background: color-mix(in srgb, var(--border) 85%, transparent); }
+.notes-item-title { flex: 1; min-width: 0; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.notes-delete { border: none; background: transparent; color: var(--danger); font-size: 0.8rem; }
+
+.notes-editor { padding: 1rem; }
+.notes-banner { border: 1px solid var(--border); background: color-mix(in srgb, var(--focus) 8%, transparent); color: var(--text); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }
+.notes-group { margin-bottom: 0.75rem; }
+.notes-label { display: block; font-weight: 500; color: var(--text-strong); margin-bottom: 0.4rem; }
+.notes-input, .notes-textarea { width: 100%; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.75rem; font-size: 0.95rem; }
+.notes-input:focus, .notes-textarea:focus { outline: none; border-color: var(--focus); box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus) 25%, transparent); }
+.notes-textarea { min-height: 0; height: auto; overflow: hidden; resize: none; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.notes-actions { display: flex; gap: 0.5rem; }
+.btn { display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 8px; padding: 0.5rem 0.9rem; font-weight: 600; cursor: pointer; min-height: 36px; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary { background: color-mix(in srgb, var(--border) 60%, transparent); color: var(--text-strong); }
+.btn-secondary:hover { background: color-mix(in srgb, var(--border) 75%, transparent); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: var(--danger-hover); }
+.notes-modal-body { display: grid; gap: .75rem; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .notes-modal-body { grid-template-columns: 1fr 1fr; } }
+.notes-preview { border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: .6rem .75rem; min-height: 18rem; max-height: 60vh; overflow: auto; }
+.notes-preview .markdown { font-size: .95rem; }

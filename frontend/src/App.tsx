@@ -16,6 +16,8 @@ import { AESKeyModal } from './components/AESKeyModal';
 import { Message, ConversationSummary, SSEEvent } from './types';
 import Portal from './components/Portal';
 import SettingsPage from './components/SettingsPage';
+import NotePreviewPage from './components/NotePreviewPage';
+import NoteEditorPage from './components/NoteEditorPage';
 
 function ChatInterface() {
   const { logout } = useAuth();
@@ -619,7 +621,7 @@ function ChatInterface() {
 
 function AppShell() {
   const location = useLocation();
-  const hideHeader = location.pathname.startsWith('/chat');
+  const hideHeader = location.pathname.startsWith('/chat') || location.pathname.startsWith('/note');
 
   return (
     <div className="h-screen flex flex-col">
@@ -679,6 +681,9 @@ function AppShell() {
           <Route path="/" element={<Portal />} />
           <Route path="/chat" element={<ChatInterface />} />
           <Route path="/note" element={<NotesPage />} />
+          <Route path="/note/new" element={<NoteEditorPage />} />
+          <Route path="/note/:noteId" element={<NoteEditorPage />} />
+          <Route path="/note/:noteId/preview" element={<NotePreviewPage />} />
           <Route path="/file" element={<FilesPage />} />
           <Route path="/setting" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

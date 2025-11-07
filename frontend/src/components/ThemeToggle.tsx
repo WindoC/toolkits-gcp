@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useTheme, Theme } from '../contexts/ThemeContext';
 
-export const ThemeToggle: React.FC = () => {
+interface ThemeToggleProps {
+  buttonClassName?: string;
+}
+
+export const ThemeToggle: React.FC<ThemeToggleProps> = ({ buttonClassName }) => {
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -22,7 +26,7 @@ export const ThemeToggle: React.FC = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 shadow-sm"
+        className={buttonClassName || "p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 shadow-sm"}
         aria-label="Change theme"
         title="Change theme"
       >
