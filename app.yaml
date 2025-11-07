@@ -43,9 +43,9 @@ handlers:
     upload: frontend/build/favicon.svg
     secure: always
 
-  - url: /chat-ai-icon.svg
-    static_files: frontend/build/chat-ai-icon.svg
-    upload: frontend/build/chat-ai-icon.svg
+  - url: /toolkits-icon.svg
+    static_files: frontend/build/toolkits-icon.svg
+    upload: frontend/build/toolkits-icon.svg
     secure: always
 
   - url: /logo192.svg

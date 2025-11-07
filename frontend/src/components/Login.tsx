@@ -29,7 +29,7 @@ export const Login: React.FC = () => {
           <span className="text-2xl text-white">🤖</span>
         </div>
         <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Welcome to Chat-AI
+          Welcome to Toolkits
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
           Sign in to start chatting with AI

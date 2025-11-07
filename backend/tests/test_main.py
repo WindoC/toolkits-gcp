@@ -33,7 +33,7 @@ def test_root_endpoint(client):
     assert response.status_code == 200
     
     data = response.json()
-    assert data["message"] == "Chat-AI API is running"
+    assert data["message"] == "Toolkits API is running"
     assert data["version"] == "1.0.0"
     assert data["docs"] == "/docs"
 

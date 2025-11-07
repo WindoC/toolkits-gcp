@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """Application settings"""
     
     # App configuration
-    app_name: str = "Chat-AI"
+    app_name: str = "Toolkits"
     debug: bool = False
     
     # Google Cloud configuration

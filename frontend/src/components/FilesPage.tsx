@@ -61,11 +61,13 @@ export const FilesPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex items-end gap-2 flex-wrap">
+    <div className="min-h-[calc(100vh-3rem)] bg-gray-50 dark:bg-gray-900 py-6 px-4">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 text-gray-900 dark:text-gray-100">
+      <div className="flex items-end gap-3 flex-wrap">
         <div>
           <label className="block text-sm font-medium">Optional File ID</label>
-          <input className="border rounded px-2 py-1" value={fileId} onChange={e=>setFileId(e.target.value)} placeholder="auto-generate if blank" />
+          <input className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" value={fileId} onChange={e=>setFileId(e.target.value)} placeholder="auto-generate if blank" />
         </div>
         <div className="flex items-center gap-2">
           <input id="pub" type="checkbox" checked={isPublic} onChange={e=>setIsPublic(e.target.checked)} />
@@ -78,30 +80,32 @@ export const FilesPage: React.FC = () => {
         <div>
           <label className="block text-sm font-medium">Upload From URL</label>
           <div className="flex gap-2">
-            <input ref={urlInput} className="border rounded px-2 py-1 w-80" placeholder="https://example.com/file" />
+            <input ref={urlInput} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-80 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="https://example.com/file" />
             <button className="px-3 py-2 rounded bg-blue-600 text-white" onClick={onUploadUrl}>Fetch</button>
           </div>
         </div>
         <button className="ml-auto px-3 py-2 rounded bg-gray-200 dark:bg-gray-700" onClick={load} disabled={loading}>Refresh</button>
       </div>
+      </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-0 overflow-hidden text-gray-900 dark:text-gray-100">
+        <div className="overflow-x-auto">
+        <table className="min-w-full text-sm text-gray-900 dark:text-gray-100">
           <thead>
-            <tr className="text-left border-b">
-              <th className="p-2">File ID</th>
-              <th className="p-2">Size</th>
-              <th className="p-2">Visibility</th>
-              <th className="p-2">Actions</th>
+            <tr className="text-left border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
+              <th className="p-3">File ID</th>
+              <th className="p-3">Size</th>
+              <th className="p-3">Visibility</th>
+              <th className="p-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {files.map(item => (
-              <tr key={item.object_path} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                <td className="p-2 font-mono">{item.file_id}</td>
-                <td className="p-2">{item.size}</td>
-                <td className="p-2">{item.is_public ? 'Public' : 'Private'}</td>
-                <td className="p-2 space-x-2">
+              <tr key={item.object_path} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60">
+                <td className="p-3 font-mono">{item.file_id}</td>
+                <td className="p-3">{item.size}</td>
+                <td className="p-3">{item.is_public ? 'Public' : 'Private'}</td>
+                <td className="p-3 space-x-2">
                   <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={()=>onDownload(item)}>Download</button>
                   <button className="px-2 py-1 text-xs rounded bg-purple-600 text-white" onClick={()=>onToggleShare(item)}>{item.is_public?'Make Private':'Make Public'}</button>
                   <button className="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onClick={()=>{setSelected(item); setRenameTo(item.file_id);}}>Rename</button>
@@ -110,22 +114,24 @@ export const FilesPage: React.FC = () => {
               </tr>
             ))}
             {files.length===0 && (
-              <tr><td className="p-2 text-gray-500" colSpan={4}>No files</td></tr>
+              <tr><td className="p-3 text-gray-500 dark:text-gray-400" colSpan={4}>No files</td></tr>
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {selected && (
-        <div className="flex items-end gap-2">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 flex items-end gap-2 text-gray-900 dark:text-gray-100">
           <div>
             <label className="block text-sm font-medium">Rename to</label>
-            <input className="border rounded px-2 py-1" value={renameTo} onChange={e=>setRenameTo(e.target.value)} />
+            <input className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" value={renameTo} onChange={e=>setRenameTo(e.target.value)} />
           </div>
           <button className="px-3 py-2 rounded bg-blue-600 text-white" onClick={onRename}>Commit Rename</button>
           <button className="px-3 py-2 rounded bg-gray-200 dark:bg-gray-700" onClick={()=>{setSelected(null); setRenameTo('');}}>Cancel</button>
         </div>
       )}
+      </div>
     </div>
   );
 };
