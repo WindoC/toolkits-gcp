@@ -102,7 +102,7 @@ export class APIService {
     form.append('file', file);
     if (fileId) form.append('file_id', fileId);
     if (typeof isPublic === 'boolean') form.append('public', String(isPublic));
-    const response = await fetch(`${API_BASE_URL}/api/files/upload`, { method: 'POST', headers: { 'Authorization': this.getAuthHeaders()['Authorization'] as string }, body: form });
+    const response = await fetch(`${API_BASE_URL}/api/files/upload`, { method: 'POST', headers: this.getAuthHeaderObject(), body: form });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to upload file');
@@ -115,7 +115,7 @@ export class APIService {
     form.append('url', urlStr);
     if (fileId) form.append('file_id', fileId);
     if (typeof isPublic === 'boolean') form.append('public', String(isPublic));
-    const response = await fetch(`${API_BASE_URL}/api/files/upload-url`, { method: 'POST', headers: { 'Authorization': this.getAuthHeaders()['Authorization'] as string }, body: form });
+    const response = await fetch(`${API_BASE_URL}/api/files/upload-url`, { method: 'POST', headers: this.getAuthHeaderObject(), body: form });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to upload from URL');
@@ -149,7 +149,7 @@ export class APIService {
     const form = new FormData();
     form.append('new_file_id', newFileId);
     if (typeof isPublic === 'boolean') form.append('public', String(isPublic));
-    const response = await fetch(`${API_BASE_URL}/api/files/${fileId}`, { method: 'PATCH', headers: { 'Authorization': this.getAuthHeaders()['Authorization'] as string }, body: form });
+    const response = await fetch(`${API_BASE_URL}/api/files/${fileId}`, { method: 'PATCH', headers: this.getAuthHeaderObject(), body: form });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to rename file');
@@ -160,7 +160,7 @@ export class APIService {
   async toggleShare(fileId: string, currentPublic: boolean): Promise<any> {
     const form = new FormData();
     form.append('current_public', String(currentPublic));
-    const response = await fetch(`${API_BASE_URL}/api/files/${fileId}/toggle-share`, { method: 'POST', headers: { 'Authorization': this.getAuthHeaders()['Authorization'] as string }, body: form });
+    const response = await fetch(`${API_BASE_URL}/api/files/${fileId}/toggle-share`, { method: 'POST', headers: this.getAuthHeaderObject(), body: form });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to toggle share');
@@ -190,6 +190,11 @@ export class APIService {
     }
     
     return headers;
+  }
+
+  private getAuthHeaderObject(): HeadersInit {
+    const token = localStorage.getItem('access_token');
+    return token ? ({ Authorization: `Bearer ${token}` } as Record<string, string>) : ({} as Record<string, string>);
   }
 
   private async handleAuthError(response: Response): Promise<void> {

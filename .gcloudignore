@@ -354,6 +354,7 @@ tools/
 dev-tools/
 .dev/
 local/
+.temp/
 
 # Example configurations
 *.example
