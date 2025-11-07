@@ -49,7 +49,7 @@ export const KeyManagement: React.FC<KeyManagementProps> = ({ onKeyUpdated }) =>
   };
 
   const handleRemoveKey = () => {
-    if (confirm('Are you sure you want to remove your encryption key? You will lose access to encrypted conversations.')) {
+    if (window.confirm('Are you sure you want to remove your encryption key? You will lose access to encrypted conversations.')) {
       localStorage.removeItem('aes_key_hash');
       onKeyUpdated?.();
     }

@@ -14,6 +14,7 @@ This README aggregates the core documentation at the repository root for quick a
 - [Design](#design)
 - [Plan](#plan)
 - [Agents](#agents)
+ - [Frontend Routes](#frontend-routes)
 
 ---
 
@@ -130,7 +131,7 @@ Single deployment target: Google App Engine (Standard, Python 3.13). Frontend: R
   - `middleware/`: keep `auth_middleware.py`, `encryption_middleware.py` and extend encrypted endpoints list
   - `models.py`, `config.py`, `main.py` stay as central entry
 - `frontend/` (from chatai-gcp/frontend)
-  - Add routes/views: `/notes`, `/files` with pages and components
+  - Add routes/views: `/` (Portal), `/chat`, `/note`, `/file`, `/setting` with pages and components
   - Reuse `AuthContext`, `encryptionService`, and API client patterns
 - `app.yaml` (root): copied/extended from chatai-gcp with static handlers for React build
 - `.gcloudignore`, `.gitignore` (root)
@@ -164,7 +165,7 @@ Single deployment target: Google App Engine (Standard, Python 3.13). Frontend: R
   - Reuse auth flow (Login, token refresh), `AuthContext`, and `encryptionService` from chatai-gcp.
   - Tailwind config from chatai-gcp is kept.
 - Routes
-  - `/chat` (existing), `/notes`, `/files`, `/login`.
+  - `/` (Portal), `/chat`, `/note`, `/file`, `/setting`.
 - Notes UI
   - List, editor, preview (migrate templates from note-gcp into React components).
 - Files UI
@@ -332,3 +333,11 @@ Scope: Entire repository.
 <<END AGENTS.md>>
 ```
 
+
+## Frontend Routes
+- `/` Portal: landing with links to Chat, Notes, Files, Settings.
+- `/chat`: chat tool (unchanged logic, mounted here).
+- `/note`: notes tool (minimal editor using encryptionService).
+- `/file`: files tool (list/upload scaffolding, rename/delete/download/share).
+- `/setting`: manage `localStorage.aes_key_hash` and sign out.
+- Unknown paths redirect to `/`.

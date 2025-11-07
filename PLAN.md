@@ -12,9 +12,10 @@
   - Add `routers/files.py` from cache-gcp; adapt to chatai auth/encryption; wrap GCS ops.
   - Extend `encryption_middleware` endpoints to include notes/files where applicable.
   - Wire services (`firestore_service`, new `gcs_service`).
-- Phase 3 — Frontend Integration
-  - Add routes/pages for Notes and Files; reuse chatai contexts and encryption service.
-  - Implement API clients for notes/files.
+– Phase 3 – Frontend Integration
+  - Split UI into first-level paths: `/` Portal, `/chat`, `/note`, `/file`, `/setting`.
+  - Mount existing chat under `/chat`; scaffold minimal Notes/Files pages; add Settings for AES key management.
+  - Implement/extend API clients for notes/files.
 - Phase 4 — App Engine Deployment
   - Build frontend: `npm ci && npm run build`.
   - Deploy with `gcloud app deploy` using root `app.yaml`.
@@ -45,4 +46,3 @@
 - Persist file metadata in Firestore (Y/N) vs rely on GCS listing only.
 - Notes data model minimal fields (title, encrypted content) vs additional tags.
 - Exact set of endpoints to be covered by encryption for files (metadata vs raw download JSON only).
-

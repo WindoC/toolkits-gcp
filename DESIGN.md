@@ -49,15 +49,20 @@
 - Global
   - Reuse auth flow (Login, token refresh), `AuthContext`, and `encryptionService` from chatai-gcp.
   - Tailwind config from chatai-gcp is kept.
-- Routes
-  - `/chat` (existing), `/notes`, `/files`, `/login`.
+- Routes (first-level paths)
+  - `/` Portal: landing with navigation to tools.
+  - `/chat`: existing chat experience mounted here.
+  - `/note`: notes tool (minimal: title + encrypted content).
+  - `/file`: files tool (list and upload scaffolding, rename, delete, download, toggle share).
+  - `/setting`: settings page; manage `localStorage.aes_key_hash` and sign out.
+  - Unknown paths redirect to `/`.
 - Notes UI
-  - List, editor, preview (migrate templates from note-gcp into React components).
+  - List and minimal editor (title + encrypted content) aligned to `encrypted_data` wire format.
 - Files UI
   - List with size/visibility, upload (file and URL), rename, delete, download, toggle share.
 - API Client
   - Extend existing `api.ts` with notes/files endpoints.
-  - All supported endpoints to use `encryptionService` for request/response when available.
+  - Use `encryptionService` for JSON metadata where applicable; raw file bytes remain unencrypted.
 
 ## Deployment
 - App Engine Standard, Python 3.13.
@@ -88,4 +93,3 @@
 - Persist file metadata in Firestore or infer from GCS only? (Default: no metadata DB, list via GCS.)
 - Notes search/indexing scope (out of scope for v1).
 - Multi-service split for heavy traffic (future phase).
-

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { ChatMessage } from './components/ChatMessage';
 import { ChatInput } from './components/ChatInput';
 import { ConversationSidebar } from './components/ConversationSidebar';
@@ -13,6 +14,8 @@ import { apiService } from './services/api';
 import EncryptionService from './services/encryptionService';
 import { AESKeyModal } from './components/AESKeyModal';
 import { Message, ConversationSummary, SSEEvent } from './types';
+import Portal from './components/Portal';
+import SettingsPage from './components/SettingsPage';
 
 function ChatInterface() {
   const { logout } = useAuth();
@@ -596,26 +599,33 @@ function ChatInterface() {
 }
 
 function App() {
-  const [view, setView] = React.useState<'chat'|'notes'|'files'>(() => (localStorage.getItem('ui_view') as any) || 'chat');
-  const setAndPersist = (v: 'chat'|'notes'|'files') => { setView(v); localStorage.setItem('ui_view', v); };
   return (
     <AuthProvider>
-      <ProtectedRoute>
-        <div className="h-screen flex flex-col">
-          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-2">
-            <div className="flex items-center gap-2">
-              <button className={`px-3 py-1 rounded ${view==='chat'?'bg-blue-600 text-white':'bg-gray-100 dark:bg-gray-800'}`} onClick={()=>setAndPersist('chat')}>Chat</button>
-              <button className={`px-3 py-1 rounded ${view==='notes'?'bg-blue-600 text-white':'bg-gray-100 dark:bg-gray-800'}`} onClick={()=>setAndPersist('notes')}>Notes</button>
-              <button className={`px-3 py-1 rounded ${view==='files'?'bg-blue-600 text-white':'bg-gray-100 dark:bg-gray-800'}`} onClick={()=>setAndPersist('files')}>Files</button>
+      <Router>
+        <ProtectedRoute>
+          <div className="h-screen flex flex-col">
+            <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-4 py-2">
+              <nav className="flex items-center gap-2 text-sm">
+                <Link to="/" className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Portal</Link>
+                <Link to="/chat" className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Chat</Link>
+                <Link to="/note" className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Notes</Link>
+                <Link to="/file" className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Files</Link>
+                <Link to="/setting" className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">Settings</Link>
+              </nav>
+            </div>
+            <div className="flex-1 min-h-0">
+              <Routes>
+                <Route path="/" element={<Portal />} />
+                <Route path="/chat" element={<ChatInterface />} />
+                <Route path="/note" element={<NotesPage />} />
+                <Route path="/file" element={<FilesPage />} />
+                <Route path="/setting" element={<SettingsPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
             </div>
           </div>
-          <div className="flex-1 min-h-0">
-            {view==='chat' && <ChatInterface />}
-            {view==='notes' && <NotesPage />}
-            {view==='files' && <FilesPage />}
-          </div>
-        </div>
-      </ProtectedRoute>
+        </ProtectedRoute>
+      </Router>
     </AuthProvider>
   );
 }

@@ -27,6 +27,9 @@ Single deployment target: Google App Engine (Standard, Python 3.13). Frontend: R
   - AES-GCM for request/response encryption where required.
   - Frontend uses `localStorage.aes_key_hash` to enable encryption.
   - Server key derivation from `AES_KEY_HASH` (first 32 chars; SHA-256-derived key for AESGCM operations).
+- Navigation
+  - Portal landing page at `/` to select tools (Chat, Notes, Files).
+  - Settings page at `/setting` to manage `localStorage.aes_key_hash` (no change to encryption scheme).
 - Chat (from chatai-gcp)
   - Create conversations, stream encrypted responses, list/history, model selection.
 - Notes (from note-gcp, aligned to chatai encryption/auth)
@@ -69,8 +72,10 @@ Single deployment target: Google App Engine (Standard, Python 3.13). Frontend: R
 - Notes: `/api/notes` (CRUD; responses encrypted when enabled).
 - Files: `/api/files` (list, upload, rename, delete, download, share toggle; encryption rules documented in Design).
 
+## Frontend Routes (summary)
+- `/` Portal, `/chat`, `/note`, `/file`, `/setting` (unknown paths redirect to `/`).
+
 ## Risks
 - Divergent encryption conventions in note-gcp and cache-gcp; mitigation: standardize to chatai-gcp (`encrypted_data`).
 - App Engine handler routing collisions; mitigation: clear handler ordering and unified build output paths.
 - GCS and Firestore permissions in production; mitigation: least-privilege service account and explicit env documentation.
-
