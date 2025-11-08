@@ -10,9 +10,14 @@ automatic_scaling:
 
 entrypoint: cd backend && PYTHONPATH=/workspace:/workspace/backend python -m uvicorn main:app --host 0.0.0.0 --port $PORT
 
-env_variables:\n  GCS_BUCKET: "your_bucket_name"\n  # These will be set in Google Cloud Console for security
+env_variables:
+
+  # AI API key
   GOOGLE_API_KEY: "your_gemini_api_key"
+
+  # These will be set in Google Cloud Console for security
   GOOGLE_CLOUD_PROJECT: "your_project_id"
+  GCS_BUCKET: "your_bucket_name"
   DEBUG: "false"
   
   # Phase 3 Authentication - Set these in GCP Console
