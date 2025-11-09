@@ -8,7 +8,7 @@ automatic_scaling:
   max_instances: 1
   target_cpu_utilization: 0.6
 
-entrypoint: cd backend && PYTHONPATH=/workspace:/workspace/backend python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+entrypoint: cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT
 
 env_variables:
 
