@@ -120,7 +120,7 @@ class EncryptionMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         
         # Encrypt response for successful requests if not SSE
-        if (response.status_code == 200 and 
+        if (response.status_code in [200,201] and 
             "text/event-stream" not in response.headers.get("content-type", "")):
             try:
                 # Read response body
