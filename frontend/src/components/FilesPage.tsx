@@ -19,10 +19,34 @@ export const FilesPage: React.FC = () => {
   };
   useEffect(()=>{ load(); }, []);
 
+  const makeUniqueId = (base: string): string => {
+    const existing = new Set(files.map(f => f.file_id));
+    if (!existing.has(base)) return base;
+    const rand = () => String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0');
+    const withSuffix = (name: string, suffix: string) => {
+      const dot = name.lastIndexOf('.');
+      if (dot > 0) {
+        return `${name.slice(0, dot)}_${suffix}${name.slice(dot)}`;
+      }
+      return `${name}_${suffix}`;
+    };
+    let candidate = withSuffix(base, rand());
+    while (existing.has(candidate)) {
+      candidate = withSuffix(base, rand());
+    }
+    return candidate;
+  };
+
   const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    await apiService.uploadFile(f, fileId || undefined, isPublic);
+    let desiredId = fileId.trim();
+    if (!desiredId && f.name) {
+      desiredId = makeUniqueId(f.name);
+    } else if (desiredId) {
+      desiredId = makeUniqueId(desiredId);
+    }
+    await apiService.uploadFile(f, desiredId || undefined, isPublic);
     setFileId(''); setIsPublic(false); (e.target as any).value = '';
     await load();
   };
@@ -30,7 +54,19 @@ export const FilesPage: React.FC = () => {
   const onUploadUrl = async () => {
     const url = urlInput.current?.value?.trim();
     if (!url) return;
-    await apiService.uploadFromUrl(url, fileId || undefined, isPublic);
+    let desiredId = fileId.trim();
+    if (!desiredId) {
+      try {
+        const u = new URL(url);
+        const last = u.pathname.split('/').filter(Boolean).pop();
+        if (last) desiredId = makeUniqueId(last);
+      } catch {
+        // ignore URL parse errors; fall back to undefined
+      }
+    } else {
+      desiredId = makeUniqueId(desiredId);
+    }
+    await apiService.uploadFromUrl(url, desiredId || undefined, isPublic);
     if (urlInput.current) urlInput.current.value = '';
     setFileId(''); setIsPublic(false);
     await load();
@@ -69,7 +105,7 @@ export const FilesPage: React.FC = () => {
       <div className="flex items-end gap-3 flex-wrap">
         <div>
           <label className="block text-sm font-medium">Optional File ID</label>
-          <input className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" value={fileId} onChange={e=>setFileId(e.target.value)} placeholder="auto-generate if blank" />
+          <input className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" value={fileId} onChange={e=>setFileId(e.target.value)} placeholder="defaults to filename; ensures uniqueness" />
         </div>
         <div className="flex items-center gap-2">
           <input id="pub" type="checkbox" checked={isPublic} onChange={e=>setIsPublic(e.target.checked)} />
