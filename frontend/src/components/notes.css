@@ -90,13 +90,25 @@
 .note-preview { color: var(--text); opacity: .95; max-height: 7.5rem; overflow: hidden; }
 .note-preview.markdown { position: relative; }
 .note-preview.markdown { -webkit-mask-image: linear-gradient(180deg, #000 75%, rgba(0,0,0,0)); mask-image: linear-gradient(180deg, #000 75%, rgba(0,0,0,0)); }
-.markdown h1, .markdown h2, .markdown h3 { color: var(--text-strong); margin: .35rem 0 .25rem; }
-.markdown p { margin: .25rem 0; }
-.markdown ul { padding-left: 1.15rem; margin: .25rem 0; }
-.markdown li { margin: .2rem 0; }
+.markdown { line-height: 1.65; }
+.markdown > * + * { margin-top: 0.6rem; }
+.markdown > :first-child { margin-top: 0; }
+.markdown > :last-child { margin-bottom: 0; }
+.markdown h1, .markdown h2, .markdown h3 { color: var(--text-strong); margin: .6rem 0 .4rem; line-height: 1.25; }
+/* Ensure distinct, readable heading sizes inside markdown */
+.markdown h1 { font-size: 1.8rem; font-weight: 700; padding-top: .4rem; padding-bottom: .35rem; }
+.markdown h2 { font-size: 1.35rem; font-weight: 700; padding-top: .3rem; padding-bottom: .3rem; }
+.markdown h3 { font-size: 1.2rem; font-weight: 700; padding-top: .2rem; padding-bottom: .2rem; }
+.markdown h4 { font-size: 1.05rem; font-weight: 600; margin: .5rem 0 .35rem; }
+.markdown h5 { font-size: .98rem; font-weight: 600; margin: .45rem 0 .3rem; }
+.markdown h6 { font-size: .92rem; font-weight: 600; color: var(--text-muted); margin: .4rem 0 .25rem; }
+.markdown p { margin: .6rem 0; white-space: pre-wrap; }
+.markdown ul, .markdown ol { padding-left: 1.25rem; margin: .6rem 0; }
+.markdown li { margin: .25rem 0; }
 .markdown code { background: color-mix(in srgb, var(--border) 65%, transparent); padding: .1rem .3rem; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-.markdown pre { background: color-mix(in srgb, var(--border) 75%, transparent); border: 1px solid var(--border); padding: .5rem .75rem; border-radius: 8px; overflow: auto; }
-.markdown blockquote { border-left: 3px solid var(--border); padding-left: .75rem; color: var(--text-muted); margin: .4rem 0; }
+.markdown pre { background: color-mix(in srgb, var(--border) 75%, transparent); border: 1px solid var(--border); padding: .6rem .8rem; border-radius: 8px; overflow: auto; margin: .75rem 0; }
+.markdown blockquote { border-left: 3px solid var(--border); padding-left: .75rem; color: var(--text-muted); margin: .75rem 0; }
+.markdown hr { border: 0; border-top: 1px solid var(--border); margin: .9rem 0; }
 .note-buttons { display: flex; gap: .5rem; margin-top: .25rem; }
 
 /* Modal */
