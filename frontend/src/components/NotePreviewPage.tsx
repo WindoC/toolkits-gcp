@@ -6,6 +6,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import EncryptionService from '../services/encryptionService';
 import { AESKeyModal } from './AESKeyModal';
+import ConfirmDialog from './ConfirmDialog';
 import NotesHeader from './NotesHeader';
 
 type Note = { note_id: string; title: string; content?: string; created_at?: string; updated_at?: string };
@@ -17,6 +18,7 @@ const NotePreviewPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [keyModalMessage, setKeyModalMessage] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   // Preview page only; editing lives at /note/:id
 
   const ensureKey = (): Promise<boolean> => {
@@ -75,7 +77,7 @@ const NotePreviewPage: React.FC = () => {
         <>
           <button className="btn-sm btn-blue" onClick={onEdit}>Edit</button>
           <button className="btn-sm btn-gray" onClick={onDownload}>Download</button>
-          <button className="btn-sm btn-red" onClick={onDelete}>Delete</button>
+          <button className="btn-sm btn-red" onClick={()=>setShowDeleteConfirm(true)}>Delete</button>
         </>
       }/>
       <div className="notes-root" style={{paddingTop: '1rem'}}>
@@ -98,6 +100,16 @@ const NotePreviewPage: React.FC = () => {
       {/* Edit handled by /note/:id */}
 
       <AESKeyModal isOpen={showKeyModal} onSubmit={async (k)=>{ await EncryptionService.setupEncryptionKey(k); setShowKeyModal(false); }} onCancel={()=>setShowKeyModal(false)} message={keyModalMessage} />
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Note"
+        message="Are you sure you want to delete this note?"
+        confirmLabel="Yes"
+        cancelLabel="No"
+        onCancel={()=>setShowDeleteConfirm(false)}
+        onConfirm={async ()=>{ await onDelete(); setShowDeleteConfirm(false); }}
+      />
     </div>
   );
 };

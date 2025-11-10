@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { apiService } from '../services/api';
 import EncryptionService from '../services/encryptionService';
 import { AESKeyModal } from './AESKeyModal';
+import ConfirmDialog from './ConfirmDialog';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import NotesHeader from './NotesHeader';
@@ -21,6 +22,7 @@ export const NotesPage: React.FC = () => {
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [keyModalMessage, setKeyModalMessage] = useState('');
   const [query, setQuery] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   // editor is handled on dedicated pages now
 
   const ensureKey = (): Promise<boolean> => {
@@ -146,7 +148,7 @@ export const NotesPage: React.FC = () => {
               <div className="note-buttons">
                 <button className="btn-sm btn-blue" onClick={()=>onEdit(n)}>Edit</button>
                 <button className="btn-sm btn-gray" onClick={()=>onDownload(n)}>Download</button>
-                <button className="btn-sm btn-red" onClick={()=>onDelete(n.note_id)}>Delete</button>
+                <button className="btn-sm btn-red" onClick={()=>setConfirmDeleteId(n.note_id)}>Delete</button>
               </div>
             </div>
           ))}
@@ -158,6 +160,20 @@ export const NotesPage: React.FC = () => {
 
       {/* Editor Modal removed; use /note/new and /note/:id */}
       <AESKeyModal isOpen={showKeyModal} onSubmit={async (k)=>{ await EncryptionService.setupEncryptionKey(k); setShowKeyModal(false); }} onCancel={()=>setShowKeyModal(false)} message={keyModalMessage} />
+
+      <ConfirmDialog
+        isOpen={!!confirmDeleteId}
+        title="Delete Note"
+        message="Are you sure you want to delete this note?"
+        confirmLabel="Yes"
+        cancelLabel="No"
+        onCancel={()=>setConfirmDeleteId(null)}
+        onConfirm={async ()=>{
+          if (!confirmDeleteId) return;
+          await onDelete(confirmDeleteId);
+          setConfirmDeleteId(null);
+        }}
+      />
     </div>
   );
 };

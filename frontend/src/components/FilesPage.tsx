@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { apiService } from '../services/api';
+import ConfirmDialog from './ConfirmDialog';
 
 type FileItem = { file_id: string; object_path: string; size: number; is_public: boolean };
 
@@ -11,6 +12,7 @@ export const FilesPage: React.FC = () => {
   const urlInput = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<FileItem | null>(null);
   const [renameTo, setRenameTo] = useState('');
+  const [confirmDeleteItem, setConfirmDeleteItem] = useState<FileItem | null>(null);
 
   const load = async () => {
     try { setLoading(true); setFiles(await apiService.listFiles()); } finally { setLoading(false); }
@@ -109,7 +111,7 @@ export const FilesPage: React.FC = () => {
                   <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={()=>onDownload(item)}>Download</button>
                   <button className="px-2 py-1 text-xs rounded bg-purple-600 text-white" onClick={()=>onToggleShare(item)}>{item.is_public?'Make Private':'Make Public'}</button>
                   <button className="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onClick={()=>{setSelected(item); setRenameTo(item.file_id);}}>Rename</button>
-                  <button className="px-2 py-1 text-xs rounded bg-red-600 text-white" onClick={()=>onDelete(item)}>Delete</button>
+                  <button className="px-2 py-1 text-xs rounded bg-red-600 text-white" onClick={()=>setConfirmDeleteItem(item)}>Delete</button>
                 </td>
               </tr>
             ))}
@@ -131,6 +133,22 @@ export const FilesPage: React.FC = () => {
           <button className="px-3 py-2 rounded bg-gray-200 dark:bg-gray-700" onClick={()=>{setSelected(null); setRenameTo('');}}>Cancel</button>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!confirmDeleteItem}
+        title="Delete File"
+        message={confirmDeleteItem ? (
+          <span>Are you sure you want to delete file <span className="font-mono">{confirmDeleteItem.file_id}</span>?</span>
+        ) : 'Are you sure you want to delete this file?'}
+        confirmLabel="Yes"
+        cancelLabel="No"
+        onCancel={()=>setConfirmDeleteItem(null)}
+        onConfirm={async ()=>{
+          if (!confirmDeleteItem) return;
+          await onDelete(confirmDeleteItem);
+          setConfirmDeleteItem(null);
+        }}
+      />
       </div>
     </div>
   );
