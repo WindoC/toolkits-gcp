@@ -41,7 +41,7 @@ async def list_notes(current_user: TokenData = Depends(get_current_user)):
                     "note_id": data.get("note_id", d.id),
                     "title": data.get("title"),
                     # "content": content,
-                    "content": data.get("content"),
+                    "content": data.get("content")[0:200],
                     "created_at": data.get("created_at"),
                     "updated_at": data.get("updated_at")
                 })

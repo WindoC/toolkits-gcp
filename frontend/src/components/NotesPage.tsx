@@ -139,7 +139,7 @@ export const NotesPage: React.FC = () => {
               {n.content && (
                 <div className="note-preview markdown">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {(n.content || '').slice(0, 1200)}
+                    {(n.content || '').slice(0, 200)}
                   </ReactMarkdown>
                 </div>
               )}
