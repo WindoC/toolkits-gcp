@@ -85,7 +85,7 @@ export class APIService {
   }
 
   // Files APIs (responses unencrypted)
-  async listFiles(isPublic?: boolean): Promise<Array<{file_id: string, object_path: string, size: number, is_public: boolean}>> {
+  async listFiles(isPublic?: boolean): Promise<Array<{file_id: string, object_path: string, size: number, is_public: boolean, public_url?: string}>> {
     const url = new URL(`${API_BASE_URL}/api/files/`, window.location.origin);
     if (typeof isPublic === 'boolean') url.searchParams.set('is_public', String(isPublic));
     const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });

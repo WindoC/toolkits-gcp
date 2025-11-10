@@ -18,6 +18,14 @@ class GCSService:
         folder = "public" if is_public else "private"
         return f"{folder}/{file_id}"
 
+    def _public_url_for_path(self, object_path: str) -> Optional[str]:
+        # Provide a site-served public download path rather than direct GCS URL
+        try:
+            file_id = object_path.split("/", 1)[1]
+        except Exception:
+            return None
+        return f"/api/files/public/{file_id}"
+
     def upload_from_url(self, url: str, file_id: str, is_public: bool = False, max_size: int = 200 * 1024 * 1024) -> Tuple[str, int]:
         if not self.bucket:
             raise Exception("GCS not configured")
@@ -73,12 +81,17 @@ class GCSService:
             for blob in blobs:
                 if blob.name != prefix:
                     file_id = blob.name.split("/", 1)[1]
-                    files.append({
+                    item = {
                         "file_id": file_id,
                         "object_path": blob.name,
                         "size": blob.size,
                         "is_public": blob.name.startswith("public/")
-                    })
+                    }
+                    if item["is_public"]:
+                        url = self._public_url_for_path(blob.name)
+                        if url:
+                            item["public_url"] = url
+                    files.append(item)
 
         return files
 
@@ -151,15 +164,19 @@ class GCSService:
 
         try:
             blob.reload()
-            return {
+            info = {
                 "size": blob.size,
                 "content_type": blob.content_type,
                 "created": blob.time_created,
                 "updated": blob.updated
             }
+            if is_public:
+                url = self._public_url_for_path(object_path)
+                if url:
+                    info["public_url"] = url
+            return info
         except NotFound:
             raise FileNotFoundError(f"File not found: {file_id}")
 
 
 gcs_service = GCSService()
-

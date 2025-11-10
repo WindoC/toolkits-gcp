@@ -88,8 +88,12 @@ def test_file_upload_list_download_delete(app_client):
     assert r6.status_code == 200
     assert r6.json()["is_public"] is True
 
+    # Public download via site route
+    r6b = app_client.get(f"/api/files/public/newid")
+    assert r6b.status_code == 200
+    assert r6b.content == data
+
     # Delete
     r7 = app_client.delete("/api/files/newid")
     assert r7.status_code == 200
     assert r7.json()["success"] is True
-

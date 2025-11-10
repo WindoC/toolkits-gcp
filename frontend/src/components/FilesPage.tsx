@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { apiService } from '../services/api';
 import ConfirmDialog from './ConfirmDialog';
 
-type FileItem = { file_id: string; object_path: string; size: number; is_public: boolean };
+type FileItem = { file_id: string; object_path: string; size: number; is_public: boolean; public_url?: string };
 
 export const FilesPage: React.FC = () => {
+  const API_BASE_URL = process.env.REACT_APP_API_URL || '';
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [fileId, setFileId] = useState('');
@@ -93,6 +94,32 @@ export const FilesPage: React.FC = () => {
     await load();
   };
 
+  const onCopyPublicLink = async (item: FileItem) => {
+    if (!item.is_public) return;
+    let url = item.public_url;
+    if (!url) {
+      try {
+        const info = await apiService.getFileInfo(item.file_id, true);
+        url = info.public_url;
+      } catch {
+        // ignore
+      }
+    }
+    if (url) {
+      const absolute = `${API_BASE_URL || window.location.origin}${url}`;
+      try {
+        await navigator.clipboard.writeText(absolute);
+      } catch {
+        const a = document.createElement('textarea');
+        a.value = absolute;
+        document.body.appendChild(a);
+        a.select();
+        document.execCommand('copy');
+        document.body.removeChild(a);
+      }
+    }
+  };
+
   const onDelete = async (item: FileItem) => {
     await apiService.deleteFile(item.file_id, item.is_public);
     await load();
@@ -146,6 +173,14 @@ export const FilesPage: React.FC = () => {
                 <td className="p-3 space-x-2">
                   <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={()=>onDownload(item)}>Download</button>
                   <button className="px-2 py-1 text-xs rounded bg-purple-600 text-white" onClick={()=>onToggleShare(item)}>{item.is_public?'Make Private':'Make Public'}</button>
+                  {item.is_public && (
+                    <>
+                      <button className="px-2 py-1 text-xs rounded bg-green-600 text-white" onClick={()=>onCopyPublicLink(item)}>Copy Link</button>
+                      {item.public_url && (
+                        <a className="px-2 py-1 text-xs rounded bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-gray-100" href={item.public_url.startsWith('http') ? item.public_url : `${API_BASE_URL || window.location.origin}${item.public_url}` } target="_blank" rel="noreferrer">Open</a>
+                      )}
+                    </>
+                  )}
                   <button className="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onClick={()=>{setSelected(item); setRenameTo(item.file_id);}}>Rename</button>
                   <button className="px-2 py-1 text-xs rounded bg-red-600 text-white" onClick={()=>setConfirmDeleteItem(item)}>Delete</button>
                 </td>

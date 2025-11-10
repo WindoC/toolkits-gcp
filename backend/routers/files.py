@@ -101,3 +101,15 @@ async def toggle_share(file_id: str, current_public: bool = Form(False), current
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to toggle share: {str(e)}")
 
+
+@router.get("/public/{file_id}")
+async def public_download_file(file_id: str):
+    try:
+        data = gcs_service.download_file(file_id, is_public=True)
+        return StreamingResponse(iter([data]), media_type='application/octet-stream', headers={
+            'Content-Disposition': f'attachment; filename="{file_id}"'
+        })
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download file: {str(e)}")
