@@ -73,7 +73,7 @@ const NoteEditorPage: React.FC = () => {
     const ok = await ensureKey(); if (!ok) return;
     if (isNew) {
       const res = await apiService.createNote(title, content);
-      navigate(`/note/${res.note_id}`);
+      navigate(`/note/${res.note_id}/preview`);
     } else if (noteId) {
       await apiService.updateNote(noteId, { title, content });
       navigate(`/note/${noteId}/preview`);
