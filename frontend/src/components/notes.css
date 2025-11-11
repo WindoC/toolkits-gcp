@@ -109,7 +109,7 @@
 .markdown pre { background: color-mix(in srgb, var(--border) 75%, transparent); border: 1px solid var(--border); padding: .6rem .8rem; border-radius: 8px; overflow: auto; margin: .75rem 0; }
 .markdown blockquote { border-left: 3px solid var(--border); padding-left: .75rem; color: var(--text-muted); margin: .75rem 0; }
 .markdown hr { border: 0; border-top: 1px solid var(--border); margin: .9rem 0; }
-.note-buttons { display: flex; gap: .5rem; margin-top: .25rem; }
+.note-buttons { display: flex; gap: .5rem; margin-top: auto; }
 
 /* Modal */
 .notes-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 40; }

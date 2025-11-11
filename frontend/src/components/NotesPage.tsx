@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import './notes.css';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { apiService } from '../services/api';
 import EncryptionService from '../services/encryptionService';
 import { AESKeyModal } from './AESKeyModal';
 import ConfirmDialog from './ConfirmDialog';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import NotesHeader from './NotesHeader';
 
 type Note = { note_id: string; title: string; content?: string; created_at?: string; updated_at?: string };
@@ -135,14 +133,12 @@ export const NotesPage: React.FC = () => {
           {filtered.map(n => (
             <div key={n.note_id} className="note-card">
               <div className="note-title">
-                <a href={`/note/${n.note_id}/preview`} style={{textDecoration:'none', color:'inherit'}}>{n.title || 'Untitled'}</a>
+                <Link to={`/note/${n.note_id}/preview`} style={{textDecoration:'none', color:'inherit'}}>{n.title || 'Untitled'}</Link>
               </div>
               <div className="note-updated">Updated: {n.updated_at ? new Date(n.updated_at).toLocaleString() : ''}</div>
               {n.content && (
-                <div className="note-preview markdown">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {(n.content || '').slice(0, 200)}
-                  </ReactMarkdown>
+                <div className="note-preview" style={{whiteSpace: 'pre-wrap'}}>
+                  {(n.content || '').slice(0, 200)}
                 </div>
               )}
               <div className="note-buttons">

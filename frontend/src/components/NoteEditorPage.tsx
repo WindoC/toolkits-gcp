@@ -82,11 +82,13 @@ const NoteEditorPage: React.FC = () => {
 
   const right = (
     <>
+      <button className="btn-sm btn-blue" onClick={save} disabled={!title.trim() || loading}>{isNew ? 'Create' : 'Save'}</button>
       <label className="btn-sm btn-gray" style={{display:'inline-flex',alignItems:'center',gap:'.25rem',cursor:'pointer'}}>
         <input type="file" accept=".md,.txt" style={{display:'none'}} onChange={async e=>{const f=e.target.files?.[0]; if(f) await handleUpload(f); (e.target as HTMLInputElement).value='';}} />
         Upload
       </label>
-      <button className="btn-sm btn-blue" onClick={save} disabled={!title.trim() || loading}>{isNew ? 'Create' : 'Save'}</button>
+      <button className="btn-sm btn-gray" onClick={() => noteId ? navigate(`/note/${noteId}/preview`) : navigate('/note')}>Back</button>
+      <button className="btn-sm btn-transparent bg-transparent hover:border-transparent disable">Logout</button>
     </>
   );
 
@@ -94,7 +96,7 @@ const NoteEditorPage: React.FC = () => {
     <div className="notes-theme">
       <NotesHeader rightActions={right} />
       <div className="notes-root">
-        <div className="notes-grid" style={{gridTemplateColumns:'1fr', maxWidth:'1100px'}}>
+        <div className="notes-grid" style={{gridTemplateColumns:'1fr'}}>
           <div className="notes-modal-body" style={{display:'grid', gap:'.75rem', gridTemplateColumns:'1fr', background:'transparent', border:'0', padding:0}}>
             <div className="notes-group">
               <label className="notes-label">Title</label>

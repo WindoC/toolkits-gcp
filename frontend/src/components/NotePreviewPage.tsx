@@ -77,11 +77,12 @@ const NotePreviewPage: React.FC = () => {
         <>
           <button className="btn-sm btn-blue" onClick={onEdit}>Edit</button>
           <button className="btn-sm btn-gray" onClick={onDownload}>Download</button>
+          <button className="btn-sm btn-gray" onClick={()=>navigate('/note')}>Back</button>
           <button className="btn-sm btn-red" onClick={()=>setShowDeleteConfirm(true)}>Delete</button>
         </>
       }/>
       <div className="notes-root" style={{paddingTop: '1rem'}}>
-        <div className="notes-grid" style={{gridTemplateColumns:'1fr', maxWidth:'900px'}}>
+        <div className="notes-grid" style={{gridTemplateColumns:'1fr'}}>
           <div className="note-card">
             <div className="note-title" style={{fontSize:'1.4rem'}}>{note?.title || (loading ? 'Loading...' : 'Untitled')}</div>
             <div className="note-updated">Updated: {note?.updated_at ? new Date(note.updated_at).toLocaleString() : ''}</div>
