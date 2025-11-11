@@ -134,8 +134,9 @@ async def update_note(note_id: str, request: Request, current_user: TokenData = 
 
         updates = {"title": title, "updated_at": now}
         if content is not None:
-            content_encrypted = EncryptionService.encrypt_data({"content": content}, EncryptionService.get_server_encryption_key())
-            updates["content_encrypted"] = content_encrypted
+            # Align with current storage model which keeps plaintext `content`.
+            # Transit encryption is handled by middleware; at-rest encryption is not enabled here.
+            updates["content"] = content
 
         doc_ref.update(updates)
 
