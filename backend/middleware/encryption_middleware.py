@@ -13,7 +13,8 @@ class EncryptionMiddleware(BaseHTTPMiddleware):
     ENCRYPTED_ENDPOINTS = {
         "/api/chat",
         "/api/conversations",
-        "/api/notes"
+        "/api/notes",
+        "/api/files",
     }
     
     async def dispatch(self, request: Request, call_next) -> Response:
@@ -42,67 +43,71 @@ class EncryptionMiddleware(BaseHTTPMiddleware):
         # Store encryption key in request state for use by endpoints
         request.state.encryption_key = encryption_key
         
-        # Handle POST/PATCH/PUT requests with encrypted payloads
+        # Handle POST/PATCH/PUT requests with encrypted payloads when JSON
         if request.method in ["POST", "PATCH", "PUT"]:
             try:
-                # Read and decrypt request body
-                body = await request.body()
-                if not body:
-                    return JSONResponse(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        content={
-                            "success": False,
-                            "error": {
-                                "code": "ENCRYPTION_PAYLOAD_MISSING",
-                                "message": "Encrypted payload required"
-                            }
-                        }
-                    )
-                
-                # Parse JSON body
-                try:
-                    encrypted_payload = json.loads(body.decode('utf-8'))
-                    if "encrypted_data" not in encrypted_payload:
+                # Only attempt decryption for JSON requests. Skip for form/multipart.
+                content_type = request.headers.get("content-type", "").lower()
+                is_json_request = content_type.startswith("application/json")
+
+                if is_json_request:
+                    # Read and decrypt request body
+                    body = await request.body()
+                    if not body:
                         return JSONResponse(
                             status_code=status.HTTP_400_BAD_REQUEST,
                             content={
                                 "success": False,
                                 "error": {
-                                    "code": "ENCRYPTION_FORMAT_INVALID",
-                                    "message": "Payload must contain 'encrypted_data' field"
+                                    "code": "ENCRYPTION_PAYLOAD_MISSING",
+                                    "message": "Encrypted payload required"
                                 }
                             }
                         )
-                except json.JSONDecodeError:
-                    return JSONResponse(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        content={
-                            "success": False,
-                            "error": {
-                                "code": "ENCRYPTION_JSON_INVALID",
-                                "message": "Invalid JSON in request body"
+                    # Parse JSON body
+                    try:
+                        encrypted_payload = json.loads(body.decode('utf-8'))
+                        if "encrypted_data" not in encrypted_payload:
+                            return JSONResponse(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                content={
+                                    "success": False,
+                                    "error": {
+                                        "code": "ENCRYPTION_FORMAT_INVALID",
+                                        "message": "Payload must contain 'encrypted_data' field"
+                                    }
+                                }
+                            )
+                    except json.JSONDecodeError:
+                        return JSONResponse(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            content={
+                                "success": False,
+                                "error": {
+                                    "code": "ENCRYPTION_JSON_INVALID",
+                                    "message": "Invalid JSON in request body"
+                                }
                             }
-                        }
-                    )
-                
-                # Decrypt the payload
-                try:
-                    decrypted_data = EncryptionService.decrypt_data(
-                        encrypted_payload["encrypted_data"], 
-                        encryption_key
-                    )
-                    request.state.decrypted_data = decrypted_data
-                except ValueError as e:
-                    return JSONResponse(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        content={
-                            "success": False,
-                            "error": {
-                                "code": "DECRYPTION_FAILED",
-                                "message": str(e)
+                        )
+
+                    # Decrypt the payload
+                    try:
+                        decrypted_data = EncryptionService.decrypt_data(
+                            encrypted_payload["encrypted_data"], 
+                            encryption_key
+                        )
+                        request.state.decrypted_data = decrypted_data
+                    except ValueError as e:
+                        return JSONResponse(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            content={
+                                "success": False,
+                                "error": {
+                                    "code": "DECRYPTION_FAILED",
+                                    "message": str(e)
+                                }
                             }
-                        }
-                    )
+                        )
                 
             except Exception as e:
                 return JSONResponse(
@@ -119,9 +124,13 @@ class EncryptionMiddleware(BaseHTTPMiddleware):
         # Call the endpoint
         response = await call_next(request)
         
-        # Encrypt response for successful requests if not SSE
-        if (response.status_code in [200,201] and 
-            "text/event-stream" not in response.headers.get("content-type", "")):
+        # Encrypt response for successful requests if JSON and not SSE
+        content_type_out = response.headers.get("content-type", "").lower()
+        if (
+            response.status_code in [200, 201]
+            and "text/event-stream" not in content_type_out
+            and content_type_out.startswith("application/json")
+        ):
             try:
                 # Read response body
                 response_body = b"".join([chunk async for chunk in response.body_iterator])

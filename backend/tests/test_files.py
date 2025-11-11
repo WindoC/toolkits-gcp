@@ -1,4 +1,5 @@
 import pytest
+from backend.services.encryption_service import EncryptionService
 
 
 class FakeGCS:
@@ -57,21 +58,25 @@ def test_file_upload_list_download_delete(app_client):
     # List empty
     r0 = app_client.get("/api/files/")
     assert r0.status_code == 200
-    assert r0.json()["files"] == []
+    dec0 = EncryptionService.decrypt_data(r0.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+    assert dec0["files"] == []
 
     # Upload
     data = b"hello"
     r1 = app_client.post("/api/files/upload", files={"file": ("hello.txt", data)})
     assert r1.status_code == 200
-    fid = r1.json()["file_id"]
+    dec1 = EncryptionService.decrypt_data(r1.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+    fid = dec1["file_id"]
 
     # List non-empty
     r2 = app_client.get("/api/files/")
-    assert any(item["file_id"] == fid for item in r2.json()["files"])
+    dec2 = EncryptionService.decrypt_data(r2.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+    assert any(item["file_id"] == fid for item in dec2["files"])
 
     # Info
     r3 = app_client.get(f"/api/files/{fid}")
-    assert r3.json()["size"] == len(data)
+    dec3 = EncryptionService.decrypt_data(r3.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+    assert dec3["size"] == len(data)
 
     # Download
     r4 = app_client.get(f"/api/files/{fid}/download")
@@ -81,12 +86,14 @@ def test_file_upload_list_download_delete(app_client):
     # Rename
     r5 = app_client.patch(f"/api/files/{fid}", data={"new_file_id": "newid", "public": "false"})
     assert r5.status_code == 200
-    assert r5.json()["file_id"] == "newid"
+    dec5 = EncryptionService.decrypt_data(r5.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+    assert dec5["file_id"] == "newid"
 
     # Toggle share
     r6 = app_client.post(f"/api/files/newid/toggle-share", data={"current_public": "false"})
     assert r6.status_code == 200
-    assert r6.json()["is_public"] is True
+    dec6 = EncryptionService.decrypt_data(r6.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+    assert dec6["is_public"] is True
 
     # Public download via site route
     r6b = app_client.get(f"/api/files/public/newid")
@@ -96,4 +103,5 @@ def test_file_upload_list_download_delete(app_client):
     # Delete
     r7 = app_client.delete("/api/files/newid")
     assert r7.status_code == 200
-    assert r7.json()["success"] is True
+    dec7 = EncryptionService.decrypt_data(r7.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+    assert dec7["success"] is True

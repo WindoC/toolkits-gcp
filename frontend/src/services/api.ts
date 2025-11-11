@@ -84,8 +84,11 @@ export class APIService {
     return await EncryptionService.decryptResponse(encryptedData);
   }
 
-  // Files APIs (responses unencrypted)
+  // Files APIs (responses encrypted JSON; downloads are raw bytes)
   async listFiles(isPublic?: boolean): Promise<Array<{file_id: string, object_path: string, size: number, is_public: boolean, public_url?: string}>> {
+    if (!EncryptionService.isAvailable()) {
+      throw new Error('Encryption key not set');
+    }
     const url = new URL(`${API_BASE_URL}/api/files/`, window.location.origin);
     if (typeof isPublic === 'boolean') url.searchParams.set('is_public', String(isPublic));
     const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
@@ -93,21 +96,35 @@ export class APIService {
       await this.handleAuthError(response);
       throw new Error('Failed to list files');
     }
-    const data = await response.json();
+    const encryptedData: EncryptedPayload = await response.json();
+    const data = await EncryptionService.decryptResponse(encryptedData);
     return data.files || [];
   }
 
   async uploadFile(file: File, fileId?: string, isPublic?: boolean): Promise<any> {
-    const form = new FormData();
-    form.append('file', file);
-    if (fileId) form.append('file_id', fileId);
-    if (typeof isPublic === 'boolean') form.append('public', String(isPublic));
-    const response = await fetch(`${API_BASE_URL}/api/files/upload`, { method: 'POST', headers: this.getAuthHeaderObject(), body: form });
+    if (!EncryptionService.isAvailable()) {
+      throw new Error('Encryption key not set');
+    }
+    const arrayBuf = await file.arrayBuffer();
+    const content_b64 = this.arrayBufferToBase64(arrayBuf);
+    const payload = {
+      file_id: fileId,
+      public: typeof isPublic === 'boolean' ? isPublic : false,
+      content_b64,
+      original_filename: file.name,
+    };
+    const encrypted = await EncryptionService.encryptRequest(payload);
+    const response = await fetch(`${API_BASE_URL}/api/files/upload-encrypted`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(encrypted),
+    });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to upload file');
     }
-    return response.json();
+    const encryptedData: EncryptedPayload = await response.json();
+    return EncryptionService.decryptResponse(encryptedData);
   }
 
   async uploadFromUrl(urlStr: string, fileId?: string, isPublic?: boolean): Promise<any> {
@@ -120,7 +137,8 @@ export class APIService {
       await this.handleAuthError(response);
       throw new Error('Failed to upload from URL');
     }
-    return response.json();
+    const encryptedData: EncryptedPayload = await response.json();
+    return EncryptionService.decryptResponse(encryptedData);
   }
 
   async getFileInfo(fileId: string, isPublic?: boolean): Promise<any> {
@@ -131,10 +149,27 @@ export class APIService {
       await this.handleAuthError(response);
       throw new Error('Failed to get file info');
     }
-    return response.json();
+    const encryptedData: EncryptedPayload = await response.json();
+    return EncryptionService.decryptResponse(encryptedData);
   }
 
   async downloadFile(fileId: string, isPublic?: boolean): Promise<Blob> {
+    // If encryption key is available and the file is not public, prefer encrypted download
+    if (EncryptionService.isAvailable() && !isPublic) {
+      const url = new URL(`${API_BASE_URL}/api/files/${fileId}/download-encrypted`, window.location.origin);
+      if (typeof isPublic === 'boolean') url.searchParams.set('public', String(isPublic));
+      const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
+      if (!response.ok) {
+        await this.handleAuthError(response);
+        throw new Error('Failed to download file');
+      }
+      const encryptedData: EncryptedPayload = await response.json();
+      const decrypted = await EncryptionService.decryptResponse(encryptedData);
+      const content_b64 = decrypted.content_b64 as string;
+      return this.base64ToBlob(content_b64);
+    }
+
+    // Fallback: raw bytes (e.g., public files or no encryption key)
     const url = new URL(`${API_BASE_URL}/api/files/${fileId}/download`, window.location.origin);
     if (typeof isPublic === 'boolean') url.searchParams.set('public', String(isPublic));
     const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
@@ -154,7 +189,8 @@ export class APIService {
       await this.handleAuthError(response);
       throw new Error('Failed to rename file');
     }
-    return response.json();
+    const encryptedData: EncryptedPayload = await response.json();
+    return EncryptionService.decryptResponse(encryptedData);
   }
 
   async toggleShare(fileId: string, currentPublic: boolean): Promise<any> {
@@ -165,7 +201,8 @@ export class APIService {
       await this.handleAuthError(response);
       throw new Error('Failed to toggle share');
     }
-    return response.json();
+    const encryptedData: EncryptedPayload = await response.json();
+    return EncryptionService.decryptResponse(encryptedData);
   }
 
   async deleteFile(fileId: string, isPublic?: boolean): Promise<any> {
@@ -176,7 +213,8 @@ export class APIService {
       await this.handleAuthError(response);
       throw new Error('Failed to delete file');
     }
-    return response.json();
+    const encryptedData: EncryptedPayload = await response.json();
+    return EncryptionService.decryptResponse(encryptedData);
   }
 
   private getAuthHeaders(): HeadersInit {
@@ -190,6 +228,16 @@ export class APIService {
     }
     
     return headers;
+  }
+
+  private arrayBufferToBase64(buffer: ArrayBuffer): string {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.length;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
   }
 
   private getAuthHeaderObject(): HeadersInit {
@@ -226,6 +274,16 @@ export class APIService {
       localStorage.removeItem('refresh_token');
       window.location.reload();
     }
+  }
+
+  private base64ToBlob(b64: string, contentType = 'application/octet-stream'): Blob {
+    const binaryString = atob(b64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: contentType });
   }
 
   async getConversations(limit: number = 50, offset: number = 0): Promise<ConversationSummary[]> {

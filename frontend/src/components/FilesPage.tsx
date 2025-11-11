@@ -173,6 +173,8 @@ export const FilesPage: React.FC = () => {
                 <td className="p-3 space-x-2">
                   <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={()=>onDownload(item)}>Download</button>
                   <button className="px-2 py-1 text-xs rounded bg-purple-600 text-white" onClick={()=>onToggleShare(item)}>{item.is_public?'Make Private':'Make Public'}</button>
+                  <button className="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onClick={()=>{setSelected(item); setRenameTo(item.file_id);}}>Rename</button>
+                  <button className="px-2 py-1 text-xs rounded bg-red-600 text-white" onClick={()=>setConfirmDeleteItem(item)}>Delete</button>
                   {item.is_public && (
                     <>
                       <button className="px-2 py-1 text-xs rounded bg-green-600 text-white" onClick={()=>onCopyPublicLink(item)}>Copy Link</button>
@@ -181,8 +183,6 @@ export const FilesPage: React.FC = () => {
                       )}
                     </>
                   )}
-                  <button className="px-2 py-1 text-xs rounded bg-yellow-600 text-white" onClick={()=>{setSelected(item); setRenameTo(item.file_id);}}>Rename</button>
-                  <button className="px-2 py-1 text-xs rounded bg-red-600 text-white" onClick={()=>setConfirmDeleteItem(item)}>Delete</button>
                 </td>
               </tr>
             ))}
