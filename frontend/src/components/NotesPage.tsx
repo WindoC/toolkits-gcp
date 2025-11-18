@@ -138,6 +138,16 @@ export const NotesPage: React.FC = () => {
           >
             Search
           </button>
+          <button
+            className="btn-sm btn-red"
+            onClick={() => {
+              setPage(1);
+              setQuery("");
+              load("", 1);
+            }}
+          >
+            Clear
+          </button>
         </div>
 
         {/* Grid */}
