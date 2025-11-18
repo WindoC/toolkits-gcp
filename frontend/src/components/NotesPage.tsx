@@ -17,6 +17,9 @@ export const NotesPage: React.FC = () => {
   const [filtered, setFiltered] = useState<Note[]>([]);
   // Editing handled on dedicated routes; keep only list state here
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
+  const [hasMore, setHasMore] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [keyModalMessage, setKeyModalMessage] = useState('');
   const [query, setQuery] = useState('');
@@ -36,12 +39,13 @@ export const NotesPage: React.FC = () => {
     });
   };
 
-  const load = async (searchQuery?: string) => {
+  const load = async (searchQuery?: string, pageOverride?: number) => {
     try {
       setLoading(true);
       const hasKey = await ensureKey();
       if (!hasKey) return;
-      const data = await apiService.getNotes(searchQuery);
+      const effectivePage = pageOverride ?? page;
+      const data = await apiService.getNotes(searchQuery, effectivePage, pageSize);
       // Try to hydrate content for previews
       const withContent = await Promise.all(
         data.map(async (n) => {
@@ -51,6 +55,7 @@ export const NotesPage: React.FC = () => {
       );
       setNotes(withContent);
       setFiltered(withContent);
+      setHasMore(withContent.length === pageSize);
     } catch (e) {
       console.error(e);
     } finally {
@@ -58,7 +63,7 @@ export const NotesPage: React.FC = () => {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load('', 1); }, []);
 
   const onEdit = async (n?: Note) => {
     try {
@@ -118,7 +123,8 @@ export const NotesPage: React.FC = () => {
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter') {
-                load(query);
+                setPage(1);
+                load(query, 1);
               }
             }}
           />
@@ -126,7 +132,8 @@ export const NotesPage: React.FC = () => {
             className="btn-sm btn-blue"
             onClick={() => {
               // Trigger backend search; results only update on button click
-              load(query);
+              setPage(1);
+              load(query, 1);
             }}
           >
             Search
@@ -157,6 +164,36 @@ export const NotesPage: React.FC = () => {
             <div className="note-card" style={{gridColumn: '1 / -1', textAlign:'center', color:'var(--text-muted)'}}>No notes found</div>
           )}
         </div>
+
+        {filtered.length > 0 && (
+          <div className="pagination" style={{textAlign:'center', alignItems:'center', marginTop: '1rem', display: 'flex', gap: '5rem', justifyContent: 'center'}}>
+            <button
+              className="btn-sm btn-gray"
+              disabled={page <= 1 || loading}
+              onClick={() => {
+                if (page <= 1) return;
+                const prevPage = page - 1;
+                setPage(prevPage);
+                load(query, prevPage);
+              }}
+            >
+              Previous
+            </button>
+            <span style={{color:'var(--text-muted)'}}>Page {page}</span>
+            <button
+              className="btn-sm btn-gray"
+              disabled={!hasMore || loading}
+              onClick={() => {
+                if (!hasMore) return;
+                const nextPage = page + 1;
+                setPage(nextPage);
+                load(query, nextPage);
+              }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Editor Modal removed; use /note/new and /note/:id */}

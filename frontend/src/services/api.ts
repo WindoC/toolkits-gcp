@@ -14,13 +14,19 @@ export class APIService {
   }
 
   // Notes APIs (encrypted responses and requests)
-  async getNotes(search?: string): Promise<Array<{note_id: string, title: string, content?: string, created_at?: string, updated_at?: string}>> {
+  async getNotes(search?: string, page?: number, pageSize?: number): Promise<Array<{note_id: string, title: string, content?: string, created_at?: string, updated_at?: string}>> {
     if (!EncryptionService.isAvailable()) {
       throw new Error('Encryption key not set');
     }
     const url = new URL(`${API_BASE_URL}/api/notes/`, window.location.origin);
     if (search && search.trim()) {
       url.searchParams.set('q', search.trim());
+    }
+    if (page && page > 0) {
+      url.searchParams.set('page', String(page));
+    }
+    if (pageSize && pageSize > 0) {
+      url.searchParams.set('page_size', String(pageSize));
     }
     const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
     if (!response.ok) {

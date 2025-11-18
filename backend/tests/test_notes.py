@@ -121,3 +121,23 @@ def test_search_notes_by_query(app_client):
 
     assert isinstance(dec_list, list)
     assert any("searchtarget" in (n.get("title") or "").lower() or "searchtarget" in (n.get("content") or "").lower() for n in dec_list)
+
+
+def test_list_notes_pagination(app_client):
+    # Create multiple notes
+    for i in range(15):
+        app_client.post("/api/notes/", json=_enc_body({"title": f"Note {i}", "content": f"Body {i}"}))
+
+    # First page: expect up to 12 notes
+    r1 = app_client.get("/api/notes/?page=1&page_size=12")
+    assert r1.status_code == 200
+    dec1 = EncryptionService.decrypt_data(r1.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+    assert isinstance(dec1, list)
+    assert len(dec1) == 12
+
+    # Second page: remaining notes (<= 3)
+    r2 = app_client.get("/api/notes/?page=2&page_size=12")
+    assert r2.status_code == 200
+    dec2 = EncryptionService.decrypt_data(r2.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+    assert isinstance(dec2, list)
+    assert 0 < len(dec2) <= 3

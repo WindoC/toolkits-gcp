@@ -23,6 +23,8 @@ def get_fs() -> FirestoreService:
 @router.get("/", response_model=List[dict])
 async def list_notes(
     q: Optional[str] = Query(default=None, description="Optional search query for title/content"),
+    page: Optional[int] = Query(default=None, ge=1, description="Optional page number (1-based)"),
+    page_size: Optional[int] = Query(default=None, ge=1, le=100, description="Optional page size"),
     current_user: TokenData = Depends(get_current_user),
 ):
     try:
@@ -53,6 +55,14 @@ async def list_notes(
                     "created_at": data.get("created_at"),
                     "updated_at": data.get("updated_at")
                 })
+
+        # Optional pagination (preserve existing behavior when page is not provided)
+        if page is not None:
+            effective_page_size = page_size or 50
+            start = (page - 1) * effective_page_size
+            end = start + effective_page_size
+            result = result[start:end]
+
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list notes: {str(e)}")
