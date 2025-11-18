@@ -56,6 +56,9 @@ async def list_notes(
                     "updated_at": data.get("updated_at")
                 })
 
+        # Sort by most recently updated first
+        result.sort(key=lambda x: x.get("updated_at") or datetime.min, reverse=True)
+
         # Optional pagination (preserve existing behavior when page is not provided)
         if page is not None:
             effective_page_size = page_size or 50
