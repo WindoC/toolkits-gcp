@@ -19,6 +19,14 @@ import SettingsPage from './components/SettingsPage';
 import NotePreviewPage from './components/NotePreviewPage';
 import NoteEditorPage from './components/NoteEditorPage';
 
+function getPageTitle(pathname: string): string {
+  if (pathname.startsWith('/chat')) return 'Chat-AI';
+  if (pathname.startsWith('/note')) return 'Markdown Notes';
+  if (pathname.startsWith('/file')) return 'Files';
+  if (pathname.startsWith('/setting')) return 'Settings';
+  return 'Toolkits';
+}
+
 function ChatInterface() {
   const { logout } = useAuth();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -622,6 +630,10 @@ function ChatInterface() {
 function AppShell() {
   const location = useLocation();
   const hideHeader = location.pathname.startsWith('/chat') || location.pathname.startsWith('/note');
+
+  useEffect(() => {
+    document.title = getPageTitle(location.pathname);
+  }, [location.pathname]);
 
   const { logout } = useAuth();
   return (
