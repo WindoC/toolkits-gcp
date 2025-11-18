@@ -36,12 +36,12 @@ export const NotesPage: React.FC = () => {
     });
   };
 
-  const load = async () => {
+  const load = async (searchQuery?: string) => {
     try {
       setLoading(true);
       const hasKey = await ensureKey();
       if (!hasKey) return;
-      const data = await apiService.getNotes();
+      const data = await apiService.getNotes(searchQuery);
       // Try to hydrate content for previews
       const withContent = await Promise.all(
         data.map(async (n) => {
@@ -50,7 +50,7 @@ export const NotesPage: React.FC = () => {
         })
       );
       setNotes(withContent);
-      setFiltered(applyFilter(withContent, query));
+      setFiltered(withContent);
     } catch (e) {
       console.error(e);
     } finally {
@@ -59,19 +59,6 @@ export const NotesPage: React.FC = () => {
   };
 
   useEffect(() => { load(); }, []);
-
-  const applyFilter = (items: Note[], q: string) => {
-    const needle = q.trim().toLowerCase();
-    if (!needle) return items;
-    return items.filter(n =>
-      (n.title || '').toLowerCase().includes(needle) ||
-      (n.content || '').toLowerCase().includes(needle)
-    );
-  };
-
-  useEffect(() => {
-    setFiltered(applyFilter(notes, query));
-  }, [query, notes]);
 
   const onEdit = async (n?: Note) => {
     try {
@@ -124,8 +111,26 @@ export const NotesPage: React.FC = () => {
       {/* Search */}
       <div className="notes-root">
         <div className="notes-search">
-          <input className="notes-search-input" placeholder="Search notes..." value={query} onChange={e=>setQuery(e.target.value)} />
-          <button className="btn-sm btn-blue" onClick={()=>setFiltered(applyFilter(notes, query))}>Search</button>
+          <input
+            className="notes-search-input"
+            placeholder="Search notes..."
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                load(query);
+              }
+            }}
+          />
+          <button
+            className="btn-sm btn-blue"
+            onClick={() => {
+              // Trigger backend search; results only update on button click
+              load(query);
+            }}
+          >
+            Search
+          </button>
         </div>
 
         {/* Grid */}

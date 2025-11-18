@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, Request, status
-from typing import List
+from fastapi import APIRouter, HTTPException, Depends, Request, status, Query
+from typing import List, Optional
 from datetime import datetime
 import uuid
 
@@ -21,27 +21,35 @@ def get_fs() -> FirestoreService:
 
 
 @router.get("/", response_model=List[dict])
-async def list_notes(current_user: TokenData = Depends(get_current_user)):
+async def list_notes(
+    q: Optional[str] = Query(default=None, description="Optional search query for title/content"),
+    current_user: TokenData = Depends(get_current_user),
+):
     try:
         fs = get_fs()
         # notes_ref = fs.db.collection("notes").where("owner", "==", current_user.username)
         notes_ref = fs.db.collection("notes")
         docs = list(notes_ref.stream())
         result = []
+        needle = (q or "").strip().lower()
         for d in docs:
             data = d.to_dict()
+            title = (data.get("title") or "")
+            content = (data.get("content") or "")
+            if needle and needle not in title.lower() and needle not in content.lower():
+                continue
             # Decrypt content for response (plaintext in-memory, will be encrypted in transit by middleware)
             # try:
             #     decrypted = EncryptionService.decrypt_data(data.get("content_encrypted"), EncryptionService.get_server_encryption_key())
             #     content = decrypted.get("content")
             # except Exception:
             #     content = None
-            if data.get("title") and data.get("content"):
+            if title and content:
                 result.append({
                     "note_id": data.get("note_id", d.id),
-                    "title": data.get("title"),
+                    "title": title,
                     # "content": content,
-                    "content": data.get("content")[0:200],
+                    "content": content[0:200],
                     "created_at": data.get("created_at"),
                     "updated_at": data.get("updated_at")
                 })

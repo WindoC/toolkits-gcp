@@ -108,3 +108,16 @@ def test_list_and_update_and_delete_note(app_client):
     dec_d = EncryptionService.decrypt_data(rd.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
     assert dec_d["success"] is True
 
+
+def test_search_notes_by_query(app_client):
+    # Create notes with distinct content
+    app_client.post("/api/notes/", json=_enc_body({"title": "Alpha note", "content": "First body"}))
+    app_client.post("/api/notes/", json=_enc_body({"title": "SearchTarget note", "content": "Contains special keyword"}))
+
+    # Search using query parameter (backend-side filtering)
+    resp = app_client.get("/api/notes/?q=SearchTarget")
+    assert resp.status_code == 200
+    dec_list = EncryptionService.decrypt_data(resp.json()["encrypted_data"], EncryptionService.get_server_encryption_key())
+
+    assert isinstance(dec_list, list)
+    assert any("searchtarget" in (n.get("title") or "").lower() or "searchtarget" in (n.get("content") or "").lower() for n in dec_list)
