@@ -541,7 +541,7 @@ function ChatInterface() {
                     <span className="text-xl md:text-2xl text-white">🤖</span>
                   </div>
                   <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 text-gray-900 dark:text-gray-100">
-                    Welcome to Toolkits
+                    Welcome to Chat-AI
                   </h2>
                   <p className="text-base md:text-lg max-w-md mx-auto px-4">
                     Start a conversation with our AI assistant powered by Google Gemini.
