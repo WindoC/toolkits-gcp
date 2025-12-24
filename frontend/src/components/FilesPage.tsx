@@ -96,7 +96,11 @@ export const FilesPage: React.FC = () => {
 
   const toAbsolutePublicUrl = (url?: string | null) => {
     if (!url) return null;
-    return url.startsWith('http') ? url : `${API_BASE_URL || window.location.origin}${url}`;
+    const normalized = url.trim();
+    if (!normalized) return null;
+    return normalized.toLowerCase().startsWith('http')
+      ? normalized
+      : `${API_BASE_URL || window.location.origin}${normalized}`;
   };
 
   const onCopyPublicLink = async (item: FileItem) => {
