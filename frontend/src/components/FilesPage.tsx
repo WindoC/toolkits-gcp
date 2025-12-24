@@ -94,6 +94,11 @@ export const FilesPage: React.FC = () => {
     await load();
   };
 
+  const toAbsolutePublicUrl = (url?: string | null) => {
+    if (!url) return null;
+    return url.startsWith('http') ? url : `${API_BASE_URL || window.location.origin}${url}`;
+  };
+
   const onCopyPublicLink = async (item: FileItem) => {
     if (!item.is_public) return;
     let url = item.public_url;
@@ -106,7 +111,8 @@ export const FilesPage: React.FC = () => {
       }
     }
     if (url) {
-      const absolute = `${API_BASE_URL || window.location.origin}${url}`;
+      const absolute = toAbsolutePublicUrl(url);
+      if (!absolute) return;
       try {
         await navigator.clipboard.writeText(absolute);
       } catch {
@@ -179,7 +185,14 @@ export const FilesPage: React.FC = () => {
                     <>
                       <button className="px-2 py-1 text-xs rounded bg-green-600 text-white" onClick={()=>onCopyPublicLink(item)}>Copy Link</button>
                       {item.public_url && (
-                        <a className="px-2 py-1 text-xs rounded bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-gray-100" href={item.public_url.startsWith('http') ? item.public_url : `${API_BASE_URL || window.location.origin}${item.public_url}` } target="_blank" rel="noreferrer">Open</a>
+                        <a
+                          className="px-2 py-1 text-xs rounded bg-gray-300 dark:bg-gray-600 text-gray-900 dark:text-gray-100"
+                          href={toAbsolutePublicUrl(item.public_url) || '#'}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open
+                        </a>
                       )}
                     </>
                   )}

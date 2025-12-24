@@ -4,6 +4,7 @@ from google.cloud import storage
 from google.cloud.exceptions import NotFound
 import requests
 from io import BytesIO
+from urllib.parse import quote
 from config import settings
 
 
@@ -19,12 +20,11 @@ class GCSService:
         return f"{folder}/{file_id}"
 
     def _public_url_for_path(self, object_path: str) -> Optional[str]:
-        # Provide a site-served public download path rather than direct GCS URL
-        try:
-            file_id = object_path.split("/", 1)[1]
-        except Exception:
+        if not self.bucket_name:
             return None
-        return f"/api/files/public/{file_id}"
+        bucket = self.bucket_name.replace("gs://", "").strip("/")
+        normalized_path = quote(object_path.lstrip("/"), safe="/")
+        return f"https://storage.googleapis.com/{bucket}/{normalized_path}"
 
     def upload_from_url(self, url: str, file_id: str, is_public: bool = False, max_size: int = 200 * 1024 * 1024) -> Tuple[str, int]:
         if not self.bucket:
