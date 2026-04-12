@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { apiService } from '../services/api';
+import EncryptionService from '../services/encryptionService';
+import { AESKeyModal } from './AESKeyModal';
 import ConfirmDialog from './ConfirmDialog';
 
 type FileItem = { file_id: string; object_path: string; size: number; is_public: boolean; public_url?: string };
@@ -8,15 +10,52 @@ export const FilesPage: React.FC = () => {
   const API_BASE_URL = process.env.REACT_APP_API_URL || '';
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [keyModalMessage, setKeyModalMessage] = useState('');
   const [fileId, setFileId] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const urlInput = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<FileItem | null>(null);
   const [renameTo, setRenameTo] = useState('');
   const [confirmDeleteItem, setConfirmDeleteItem] = useState<FileItem | null>(null);
+  const keyPromptResolver = useRef<((hasKey: boolean) => void) | null>(null);
+
+  const ensureKey = (): Promise<boolean> => {
+    if (EncryptionService.isAvailable()) {
+      return Promise.resolve(true);
+    }
+
+    setKeyModalMessage('Enter your AES encryption key to access Files:');
+    setShowKeyModal(true);
+
+    return new Promise((resolve) => {
+      keyPromptResolver.current = resolve;
+    });
+  };
+
+  const handleKeySubmit = async (key: string) => {
+    await EncryptionService.setupEncryptionKey(key);
+    setShowKeyModal(false);
+    keyPromptResolver.current?.(true);
+    keyPromptResolver.current = null;
+  };
+
+  const handleKeyCancel = () => {
+    setShowKeyModal(false);
+    keyPromptResolver.current?.(false);
+    keyPromptResolver.current = null;
+  };
 
   const load = async () => {
-    try { setLoading(true); setFiles(await apiService.listFiles()); } finally { setLoading(false); }
+    const hasKey = await ensureKey();
+    if (!hasKey) return;
+
+    try {
+      setLoading(true);
+      setFiles(await apiService.listFiles());
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(()=>{ load(); }, []);
 
@@ -41,6 +80,11 @@ export const FilesPage: React.FC = () => {
   const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    const hasKey = await ensureKey();
+    if (!hasKey) {
+      (e.target as HTMLInputElement).value = '';
+      return;
+    }
     let desiredId = fileId.trim();
     if (!desiredId && f.name) {
       desiredId = makeUniqueId(f.name);
@@ -55,6 +99,8 @@ export const FilesPage: React.FC = () => {
   const onUploadUrl = async () => {
     const url = urlInput.current?.value?.trim();
     if (!url) return;
+    const hasKey = await ensureKey();
+    if (!hasKey) return;
     let desiredId = fileId.trim();
     if (!desiredId) {
       try {
@@ -74,6 +120,10 @@ export const FilesPage: React.FC = () => {
   };
 
   const onDownload = async (item: FileItem) => {
+    if (!item.is_public) {
+      const hasKey = await ensureKey();
+      if (!hasKey) return;
+    }
     const blob = await apiService.downloadFile(item.file_id, item.is_public);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -84,12 +134,16 @@ export const FilesPage: React.FC = () => {
 
   const onRename = async () => {
     if (!selected || !renameTo.trim()) return;
+    const hasKey = await ensureKey();
+    if (!hasKey) return;
     await apiService.renameFile(selected.file_id, renameTo.trim(), selected.is_public);
     setSelected(null); setRenameTo('');
     await load();
   };
 
   const onToggleShare = async (item: FileItem) => {
+    const hasKey = await ensureKey();
+    if (!hasKey) return;
     await apiService.toggleShare(item.file_id, item.is_public);
     await load();
   };
@@ -105,6 +159,8 @@ export const FilesPage: React.FC = () => {
 
   const onCopyPublicLink = async (item: FileItem) => {
     if (!item.is_public) return;
+    const hasKey = await ensureKey();
+    if (!hasKey) return;
     let url = item.public_url;
     if (!url) {
       try {
@@ -131,6 +187,8 @@ export const FilesPage: React.FC = () => {
   };
 
   const onDelete = async (item: FileItem) => {
+    const hasKey = await ensureKey();
+    if (!hasKey) return;
     await apiService.deleteFile(item.file_id, item.is_public);
     await load();
   };
@@ -236,6 +294,12 @@ export const FilesPage: React.FC = () => {
           await onDelete(confirmDeleteItem);
           setConfirmDeleteItem(null);
         }}
+      />
+      <AESKeyModal
+        isOpen={showKeyModal}
+        onSubmit={handleKeySubmit}
+        onCancel={handleKeyCancel}
+        message={keyModalMessage}
       />
       </div>
     </div>
