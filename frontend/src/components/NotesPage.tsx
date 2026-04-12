@@ -100,7 +100,7 @@ export const NotesPage: React.FC = () => {
       <NotesHeader rightActions={
         <>
           <button className="btn-sm btn-blue" onClick={() => onEdit(undefined)}>Create</button>
-          <label className="btn-sm btn-gray" style={{display:'inline-flex', alignItems:'center', gap:'.25rem', cursor:'pointer'}}>
+          <label className="btn-sm btn-gray notes-upload-button" style={{display:'inline-flex', alignItems:'center', gap:'.25rem', cursor:'pointer'}}>
             <input type="file" accept=".md,.txt" style={{display:'none'}} onChange={async (e) => {
               const f = e.target.files?.[0]; if (!f) return;
               const text = await f.text();
@@ -176,7 +176,7 @@ export const NotesPage: React.FC = () => {
         </div>
 
         {filtered.length > 0 && (
-          <div className="pagination" style={{textAlign:'center', alignItems:'center', marginTop: '1rem', display: 'flex', gap: '5rem', justifyContent: 'center'}}>
+          <div className="pagination notes-pagination">
             <button
               className="btn-sm btn-gray"
               disabled={page <= 1 || loading}

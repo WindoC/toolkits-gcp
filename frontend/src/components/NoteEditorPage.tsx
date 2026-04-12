@@ -88,7 +88,6 @@ const NoteEditorPage: React.FC = () => {
         Upload
       </label>
       <button className="btn-sm btn-gray" onClick={() => noteId ? navigate(`/note/${noteId}/preview`) : navigate('/note')}>Back</button>
-      <button className="btn-sm btn-transparent bg-transparent hover:border-transparent disable">Logout</button>
     </>
   );
 

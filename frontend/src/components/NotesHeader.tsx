@@ -32,9 +32,13 @@ export const NotesHeader: React.FC<NotesHeaderProps> = ({ rightActions }) => {
             </svg>
           </Link>
           {/* Title linking back to /note */}
-          <Link to="/note" style={{textDecoration:'none', color:'inherit', display:'inline-flex', alignItems:'center', gap:'.5rem'}}>
+          <Link
+            to="/note"
+            className="notes-brand-link"
+            style={{textDecoration:'none', color:'inherit', display:'inline-flex', alignItems:'center', gap:'.5rem'}}
+          >
             <span role="img" aria-label="notes">📝</span>
-            <span>Markdown Notes</span>
+            <span className="notes-brand-title">Markdown Notes</span>
           </Link>
         </div>
         <div className="notes-actions">
