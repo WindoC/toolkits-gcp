@@ -3,6 +3,8 @@ import EncryptionService, { EncryptedPayload } from './encryptionService';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
+export const encodePathSegment = (segment: string): string => encodeURIComponent(segment);
+
 export class APIService {
   private static instance: APIService;
   
@@ -152,7 +154,8 @@ export class APIService {
   }
 
   async getFileInfo(fileId: string, isPublic?: boolean): Promise<any> {
-    const url = new URL(`${API_BASE_URL}/api/files/${fileId}`, window.location.origin);
+    const encodedFileId = encodePathSegment(fileId);
+    const url = new URL(`${API_BASE_URL}/api/files/${encodedFileId}`, window.location.origin);
     if (typeof isPublic === 'boolean') url.searchParams.set('public', String(isPublic));
     const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
     if (!response.ok) {
@@ -166,7 +169,8 @@ export class APIService {
   async downloadFile(fileId: string, isPublic?: boolean): Promise<Blob> {
     // If encryption key is available and the file is not public, prefer encrypted download
     if (EncryptionService.isAvailable() && !isPublic) {
-      const url = new URL(`${API_BASE_URL}/api/files/${fileId}/download-encrypted`, window.location.origin);
+      const encodedFileId = encodePathSegment(fileId);
+      const url = new URL(`${API_BASE_URL}/api/files/${encodedFileId}/download-encrypted`, window.location.origin);
       if (typeof isPublic === 'boolean') url.searchParams.set('public', String(isPublic));
       const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
       if (!response.ok) {
@@ -180,7 +184,8 @@ export class APIService {
     }
 
     // Fallback: raw bytes (e.g., public files or no encryption key)
-    const url = new URL(`${API_BASE_URL}/api/files/${fileId}/download`, window.location.origin);
+    const encodedFileId = encodePathSegment(fileId);
+    const url = new URL(`${API_BASE_URL}/api/files/${encodedFileId}/download`, window.location.origin);
     if (typeof isPublic === 'boolean') url.searchParams.set('public', String(isPublic));
     const response = await fetch(url.toString().replace(window.location.origin, ''), { headers: this.getAuthHeaders() });
     if (!response.ok) {
@@ -194,7 +199,7 @@ export class APIService {
     const form = new FormData();
     form.append('new_file_id', newFileId);
     if (typeof isPublic === 'boolean') form.append('public', String(isPublic));
-    const response = await fetch(`${API_BASE_URL}/api/files/${fileId}`, { method: 'PATCH', headers: this.getAuthHeaderObject(), body: form });
+    const response = await fetch(`${API_BASE_URL}/api/files/${encodePathSegment(fileId)}`, { method: 'PATCH', headers: this.getAuthHeaderObject(), body: form });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to rename file');
@@ -206,7 +211,7 @@ export class APIService {
   async toggleShare(fileId: string, currentPublic: boolean): Promise<any> {
     const form = new FormData();
     form.append('current_public', String(currentPublic));
-    const response = await fetch(`${API_BASE_URL}/api/files/${fileId}/toggle-share`, { method: 'POST', headers: this.getAuthHeaderObject(), body: form });
+    const response = await fetch(`${API_BASE_URL}/api/files/${encodePathSegment(fileId)}/toggle-share`, { method: 'POST', headers: this.getAuthHeaderObject(), body: form });
     if (!response.ok) {
       await this.handleAuthError(response);
       throw new Error('Failed to toggle share');
@@ -216,7 +221,8 @@ export class APIService {
   }
 
   async deleteFile(fileId: string, isPublic?: boolean): Promise<any> {
-    const url = new URL(`${API_BASE_URL}/api/files/${fileId}`, window.location.origin);
+    const encodedFileId = encodePathSegment(fileId);
+    const url = new URL(`${API_BASE_URL}/api/files/${encodedFileId}`, window.location.origin);
     if (typeof isPublic === 'boolean') url.searchParams.set('public', String(isPublic));
     const response = await fetch(url.toString().replace(window.location.origin, ''), { method: 'DELETE', headers: this.getAuthHeaders() });
     if (!response.ok) {
